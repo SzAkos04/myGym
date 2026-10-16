@@ -1143,6 +1143,7 @@ function CustomExForm({ existing, prefill, onDone, close }) {
   const [eq, setEq] = useState(existing ? (existing.eq || '') : '')
   const storedEq = existing && typeof existing.eq === 'string' && existing.eq && !ALL_EQUIPMENT.includes(existing.eq) ? existing.eq : null
   const [desc, setDesc] = useState(existing ? (existing.desc || '') : '')
+  const [oneSide, setOneSide] = useState(() => !!existing && sideDefaultOf(S(), existing.id))
   const [media, setMedia] = useState(() => mediaOf(existing))
   // Whether this form changed the media at all. An edit that did not touch it writes back what the
   // exercise had, byte for byte: a ref from a newer version of the app (a codec or type this one
@@ -1219,6 +1220,8 @@ function CustomExForm({ existing, prefill, onDone, close }) {
     // The file goes to the server now rather than after the state's own debounce: another device
     // that sees the reference first shows a tile until it arrives.
     if (ref) syncMedia({ force: true })
+    // The one-side choice lives on the exercise, not in the form's exercise row, so it is written on its own.
+    if (oneSide !== sideDefaultOf(S(), id)) update(s => { s.sideEx = withSideDefault(s.sideEx, id, oneSide) })
     close()
     toast(existing ? t('Saved') : t('“{0}” created', name))
     onDone && onDone(EXIDX[id])
@@ -1248,6 +1251,12 @@ function CustomExForm({ existing, prefill, onDone, close }) {
         onToggle={toggleSecondary} noneLabel={t('No explicit muscle group')} doneLabel={t('Done')} />
     </>}
     {bp === 'cardio' && <div className="small dim row" style={{ marginBottom: 10, gap: 5 }}><Icon name="figureRun" style={{ fontSize: 13 }} />{t('Cardio exercises log time + speed instead of weight × reps.')}</div>}
+    {bp !== 'cardio' && <div className="sect-b" style={{ marginBottom: 10 }}>
+      <Row icon="sides" iconTint="var(--blue)" title={t('One side at a time')}
+        subtitle={t('Logs left and right separately when you add this exercise. A plan can still change it.')}>
+        <Switch checked={oneSide} onChange={setOneSide} />
+      </Row>
+    </div>}
     <textarea className="input" rows={4} maxLength={1000} placeholder={t('Description (optional): setup, cues, anything you want to remember')}
       value={desc} onChange={e => setDesc(e.target.value)} />
     <CustomMediaField media={media} url={url} onChange={onMedia} />
@@ -1340,7 +1349,7 @@ function ExercisePicker({ onPick, title, close, like }) {
   const moreRef = useAutoMore(() => setShown(s => s + 50))
   const all = allExercises(st)
   const profile = activeProfile(st)
-  const inScope = e => bp === '★' ? usage[e.id] : bp === '☆' ? isFav(st, e.id) : (!bp || e.bp === bp)
+  const inScope = e => bp === '★' ? usage[e.id] : bp === '☆' ? isFav(st, e.id) : bp === '⇆' ? sideDefaultOf(st, e.id) : (!bp || e.bp === bp)
   let inPart = searchExercises(bp === SAME ? sameMuscleFirst(all, likeEx) : all.filter(inScope), q)
   if (bp === '★') inPart = [...inPart].sort((a, b) => (usage[b.id] - usage[a.id]) || exerciseNameFor(a).localeCompare(exerciseNameFor(b)))
   // The Library's Type row (issue #521), with its fallback: a type the search or muscle group
@@ -1359,7 +1368,8 @@ function ExercisePicker({ onPick, title, close, like }) {
   const f = bp === SAME ? sameMuscleFirst(ranked, likeEx) : ranked
   const chosenCount = Object.keys(usage).length
   const favCount = (st.favEx || []).length
-  const special = bp === '★' || bp === '☆'
+  const sideCount = Object.values(st.sideEx || {}).filter(v => v?.on).length
+  const special = bp === '★' || bp === '☆' || bp === '⇆'
   // The Library's live result count (GitLab !31), for the same reason: how many are left.
   const narrowed = !!(q.trim() || bp || eqOn || catOn)
   useRevealActiveChip(bpStrip, bp)
@@ -1375,6 +1385,7 @@ function ExercisePicker({ onPick, title, close, like }) {
   const pickRow = e => <div key={e.id} className="item" {...tappable(() => onPick(e))}>
         <Thumb ex={e} /><div className="grow"><div className={`tt ${exerciseNameClass(e)}`}>{isFav(st, e.id) && <Icon name="starFill" className="fav-star" />}{exerciseNameFor(e)}</div><div className="ss capitalize">{t(MUSCLE_NAME[e.tg] || e.tg || e.bp)} · {t(e.eq)}</div></div>
         {/* Accent tag = already in a routine/log ("Chosen"); the yellow star by the name = favourite. */}
+        {sideDefaultOf(st, e.id) && <span className="tag" title={t('One side at a time')}><Icon name="sides" /></span>}
         {usage[e.id] && <span className="tag acc"><Icon name="starFill" /></span>}
         {/* A "+" glyph reads as "add this now" — it used to just open the same detail sheet as
             tapping the row, so it added nothing until you'd scrolled past the sets/reps config
@@ -1416,6 +1427,7 @@ function ExercisePicker({ onPick, title, close, like }) {
     <div className="chips" ref={bpStrip} style={{ margin: eqOpts.length > 1 || catOpts.length > 1 ? '10px 0 6px' : '10px 0' }}>
       {likeTg && <button className={'chip nocap' + (bp === SAME ? ' on' : '')} onClick={() => { setBp(SAME); setShown(50) }}><Icon name="figureStrength" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('Same muscle: {0}', t(MUSCLE_NAME[likeTg] || likeTg))}</button>}
       {favCount > 0 && <button className={'chip' + (bp === '☆' ? ' on' : '')} onClick={() => { setBp('☆'); setEq(''); setShown(50) }}><Icon name="starFill" className="fav-star" />{t('Favourites')} ({favCount})</button>}
+      {sideCount > 0 && <button className={'chip' + (bp === '⇆' ? ' on' : '')} onClick={() => { setBp('⇆'); setEq(''); setShown(50) }}><Icon name="sides" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('One side')} ({sideCount})</button>}
       {chosenCount > 0 && <button className={'chip' + (bp === '★' ? ' on' : '')} onClick={() => { setBp('★'); setEq(''); setShown(50) }}><Icon name="starFill" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('Chosen')} ({chosenCount})</button>}
       <button className={'chip nocap' + (!bp ? ' on' : '')} onClick={() => { setBp(''); setShown(50) }}>{t('All')}</button>
       {BODYPARTS.map(b => <button key={b} className={'chip' + (bp === b ? ' on' : '')} onClick={() => { setBp(b); setShown(50) }}>{t(b)}</button>)}
@@ -1435,6 +1447,7 @@ function ExercisePicker({ onPick, title, close, like }) {
       </div>}
       {f.slice(0, shown).map(pickRow)}
       {f.length === 0 && bp === '★' && <div className="empty">{t('Nothing picked yet. Add some exercises and they’ll show up here.')}</div>}
+      {f.length === 0 && bp === '⇆' && <div className="empty">{t('No one-side exercises yet. Switch it on in an exercise’s details.')}</div>}
       {f.length === 0 && bp === '☆' && <div className="empty">{t('No favourites yet. Tap the star on an exercise to add one.')}</div>}
       {similar.length > 0 && <h4 className="sec similar-label">{f.length ? t('Similar exercises') : t('No exact match. These come close:')}</h4>}
       {similar.map(pickRow)}

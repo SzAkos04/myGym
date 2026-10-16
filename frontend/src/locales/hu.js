@@ -2263,4 +2263,6 @@ export default {
   // --- per-exercise one-side setting ---
   'One side at a time': 'Egyszerre egy oldal',
   'Logs left and right separately when you add this exercise. A plan can still change it.': 'A gyakorlat hozzáadásakor a bal és a jobb oldalt külön naplózza. A terv ezt még felülbírálhatja.',
+  'One side': 'Egy oldal',
+  'No one-side exercises yet. Switch it on in an exercise’s details.': 'Még nincs egyoldalú gyakorlat. Kapcsold be a gyakorlat részleteinél.',
 }
