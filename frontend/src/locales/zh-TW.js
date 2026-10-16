@@ -2242,4 +2242,12 @@ export default {
   'Replace with…': 'Replace with…',
   'Replace “{0}” with “{1}”?': 'Replace “{0}” with “{1}”?',
   '{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.': '{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.',
+  // --- machine setup chips, side balance ---
+  'Machine setup': 'Machine setup',
+  'Seat': 'Seat',
+  'Pad': 'Pad',
+  'Pin': 'Pin',
+  'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)': 'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)',
+  'Sides are level over the last {0} sessions': 'Sides are level over the last {0} sessions',
+  'Backrest': 'Backrest',
 }

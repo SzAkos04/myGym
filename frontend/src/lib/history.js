@@ -3,7 +3,7 @@ import { syncSupersetMeta } from './superset-meta.js'
 import { todayISO, isoOf, weekKey, weekStartOf, fmtNum } from './format.js'
 import { fmtSpeed } from './speed.js'
 import { hasIncline, inclineFrom } from './incline.js'
-import { isCardio, isBodyweightEq, isAssisted, betterWeight } from './exercises.js'
+import { isCardio, isBodyweightEq, isUnilateralEx, isAssisted, betterWeight } from './exercises.js'
 import { barWeightFor } from './bar.js'
 import { phaseForSet, modeForSet, modeForEntry, isWarmupRow, isFailureSet, isDropSet, isRestPauseSet, normalizeMode, completedVolumeOf, hasCompletedWork, nextDropWeight, splitBurstReps, makeSideSet, isSideSet, syncSideAggregate, WEIGHT_ORIGIN_MANUAL, dropsOf, clustersOf } from './workout-model.js'
 import { backoffAt, backoffStepOf, backoffWeights } from './backoff.js'
@@ -211,8 +211,9 @@ export function defaultConfig(id, mode) {
   // Written only when it is true, so a barbell config is byte-for-byte what it was before
   // the flag existed and a plan file gains nothing it does not need.
   const bw = isBodyweightEq(id) ? { bodyweight: true } : {}
-  if (m === 'time') return { sets: 3, sec: 45, weight: 0, mode: 'time', ...bw }
-  return { sets: 3, reps: 10, weight: 0, mode: 'reps', ...bw }
+  const side = isUnilateralEx(id) ? { side: true } : {}
+  if (m === 'time') return { sets: 3, sec: 45, weight: 0, mode: 'time', ...bw, ...side }
+  return { sets: 3, reps: 10, weight: 0, mode: 'reps', ...bw, ...side }
 }
 // A double-progression range is stored as its top (`reps`) and its bottom (`repsMin`), and
 // reads as the range it is: "8–12". Printing the top alone made "Reps from 10, up to 15" read

@@ -655,6 +655,9 @@ body.chips-dragging *{cursor:inherit}
   background:var(--surface);border-radius:var(--r);padding:13px 15px;
   line-height:1.45;white-space:pre-wrap;font-size:15px;margin-bottom:10px;color:var(--label-2);
 }
+.exsetup{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px}
+.exsetup-chip{background:var(--surface);border-radius:999px;padding:5px 11px;font-size:14px;font-weight:600;color:var(--label)}
+.exsetup-add{background:var(--surface-2);border:0;border-radius:999px;padding:5px 11px;font-size:13px;color:var(--label-2);cursor:pointer}
 
 /* --- search field --- */
 .searchf{position:relative;display:flex;align-items:center}

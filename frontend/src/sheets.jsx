@@ -61,6 +61,8 @@ import { moveWorkout, sameWorkout, startTimeOf, durationMinOf, setWorkoutDuratio
 import { editCompletedSession, editLeftEmpty, editedRecord, editChangesNothing } from './lib/session-edit.js'
 import { stampWorkout } from './lib/sync-merge.js'
 import { mergeExerciseInto, mergeImpact } from './lib/exercise-merge.js'
+import { hasSetting } from './lib/setup-note.js'
+import { sideBalance } from './lib/side-balance.js'
 import { weeklyWeights } from './lib/bodyweight.js'
 import { workoutText } from './lib/workout-text.js'
 import { prsOf } from './lib/pr-derive.js'
@@ -1038,6 +1040,7 @@ function ExerciseHistory({ exId }) {
   const st = useStore(s => s.S)
   const ex = exOr(exId)
   const h = useMemo(() => exerciseHistory(st, exId), [st.workouts, exId])
+  const bal = useMemo(() => sideBalance(st.workouts, exId), [st.workouts, exId])
   const [curve, setCurve] = useState('top')
   const onE1 = curve === 'e1rm' && h.e1rmPoints.length > 0
   const unit = h.metric === 'weight' ? st.unit : h.metric === 'reps' ? t('reps') : h.metric === 'sec' ? 's' : t('min')
@@ -1063,6 +1066,12 @@ function ExerciseHistory({ exId }) {
       <Icon name="trophy" style={{ fontSize: 14, color: 'var(--yellow)' }} />
       {t('Best:')} <b className="accent">{fmtNum(onE1 ? e1Best : h.best)} {onE1 ? st.unit : unit}</b>
     </div>
+    {bal && <div className="small row" style={{ margin: '0 0 4px', gap: 5 }}>
+      <Icon name="sides" style={{ fontSize: 14, color: 'var(--label-2)' }} />
+      {bal.weakSide
+        ? t('Weaker side: {0} · {1} reps fewer per set (last {2} sessions)', bal.weakSide === 'L' ? t('Left') : t('Right'), fmtNum(bal.repsDiff), bal.sessions)
+        : t('Sides are level over the last {0} sessions', bal.sessions)}
+    </div>}
     <h4 className="sec">{h.sessions.length < h.total ? t('Last {0} sessions', h.sessions.length) : t('Sessions')}</h4>
     <div className="list">
       {h.sessions.map(s => <div key={s.id} className="item" style={{ alignItems: 'flex-start' }}>
@@ -3009,6 +3018,7 @@ export function addRoutineToSessionSheet() {
    and is deliberately not here: it belongs to the plan, not to the day or to the movement. */
 function ExerciseNote({ entryIdx, close }) {
   const noteRef = useRef(null)
+  const standingRef = useRef(null)
   const onNoteFocus = useSheetKeyboard(noteRef)
   const st = useStore(s => s.S)
   const update = useStore(s => s.update)
@@ -3056,9 +3066,18 @@ function ExerciseNote({ entryIdx, close }) {
     {!editing && <>
       <div style={{ height: 18 }} />
       <div className="small muted" style={{ marginBottom: 6 }}>{t('Always for this exercise')}</div>
-      <textarea className="input" rows={2} maxLength={NOTE_MAX} value={standing}
+      <textarea ref={standingRef} className="input" rows={2} maxLength={NOTE_MAX} value={standing}
         placeholder={t('Seat height, pin position, a form cue. Shown every session.')}
         onChange={e => setStanding(e.target.value)} />
+      {/* Quick starters for the usual machine settings: adds "Seat " to type the number after,
+          or just jumps to it when the note already has one. */}
+      <div className="exsetup" style={{ marginTop: 8, marginBottom: 0 }}>
+        {[t('Seat'), t('Backrest'), t('Pad'), t('Pin')].map(label => <button key={label} type="button" className="exsetup-add"
+          onClick={() => {
+            if (!hasSetting(standing, label)) setStanding(cur => (cur.trim() ? cur.trim() + ' · ' : '') + label + ' ')
+            standingRef.current?.focus()
+          }}>+ {label}</button>)}
+      </div>
     </>}
     <div style={{ height: 18 }} />
     <Button variant="primary" onClick={save}>{t('Save')}</Button>

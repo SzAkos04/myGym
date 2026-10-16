@@ -2252,4 +2252,12 @@ export default {
   'Replace with…': 'Csere erre…',
   'Replace “{0}” with “{1}”?': 'Lecseréled a(z) „{0}” gyakorlatot erre: „{1}”?',
   '{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.': '{0} naplózott edzés és {1} rutin ezt használja majd: „{2}”, a(z) „{3}” pedig törlődik. Ez nem vonható vissza.',
+  // --- machine setup chips, side balance ---
+  'Machine setup': 'Gépbeállítás',
+  'Seat': 'Ülés',
+  'Pad': 'Párna',
+  'Pin': 'Csap',
+  'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)': 'Gyengébb oldal: {0} · {1} ismétléssel kevesebb sorozatonként (utolsó {2} edzés)',
+  'Sides are level over the last {0} sessions': 'A két oldal egyforma az utolsó {0} edzésen',
+  'Backrest': 'Háttámla',
 }

@@ -9,6 +9,7 @@ import { exOr, betterWeight } from '../lib/exercises.js'
 import { usesBar } from '../lib/bar.js'
 import { loadKindFor, baseWeightFor, inventoryFor, rowLoad, sameLoad, plateDelta, dropGrid } from '../lib/plates.js'
 import { effectiveRoutines, effectiveRoutineIds, lastEntryFor, bestWeightFor, bestWeightForEntry, buildSets, freestyleConfig, defaultConfig, setsDoneActive, setUnitsTotal, supersetUnits, unitOf, setLabel, modeOf, isBw, isPerSide, repStep, EFFORT, effortOf, stepEffort, capEffort, cascadeWeight, insertWarmupRow, barFloor, makeWarmupAt, canBeWarmup, makeWorkAt, removeRowAt, removeLastSet, setSpanAt, copyRowAt, copySpanAt, insertRowAt, pairAdjacent, unpairSuperset, cleanupSg, applyIntensifierPlan, pinnedNoteFor, exNoteFor, setsRepsOf } from '../lib/history.js'
+import { setupChips } from '../lib/setup-note.js'
 import { fmtNum, fmtPlate, exerciseNameText, fmtDate, fmtDaysAgo, todayISO, exCount, DAYN } from '../lib/format.js'
 import { speedUnitOf, toSpeed, fromSpeed } from '../lib/speed.js'
 import { clampIncline, hasIncline, inclineFits, inclineFrom, INCLINE_STEP } from '../lib/incline.js'
@@ -671,7 +672,10 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
         standing fact about the movement (exNotes), and the message you pinned to yourself last
         session. Today's own note is edited through the button in the header and shown last. */}
     {cfg.note && <div className="exnote">{cfg.note}</div>}
-    {standingNote && <div className="exnote"><Icon name="info" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />{standingNote}</div>}
+    {standingNote && <div className="exsetup" aria-label={t('Machine setup')}>
+      <Icon name="info" style={{ fontSize: 14, color: 'var(--label-2)' }} />
+      {setupChips(standingNote).map((chip, i) => <span key={i} className="exsetup-chip">{chip}</span>)}
+    </div>}
     {pinnedNote && <div className="exnote" style={{ color: 'var(--yellow)' }}>
       <Icon name="pin" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />
       {t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}
