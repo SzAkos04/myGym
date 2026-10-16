@@ -2265,4 +2265,8 @@ export default {
   'Logs left and right separately when you add this exercise. A plan can still change it.': 'A gyakorlat hozzáadásakor a bal és a jobb oldalt külön naplózza. A terv ezt még felülbírálhatja.',
   'One side': 'Egy oldal',
   'No one-side exercises yet. Switch it on in an exercise’s details.': 'Még nincs egyoldalú gyakorlat. Kapcsold be a gyakorlat részleteinél.',
+  // --- accent names ---
+  'Ember': 'Parázs',
+  'Volt': 'Volt',
+  'Ice': 'Jég',
 }

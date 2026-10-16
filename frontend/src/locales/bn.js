@@ -2341,4 +2341,8 @@ export default {
   'Logs left and right separately when you add this exercise. A plan can still change it.': 'Logs left and right separately when you add this exercise. A plan can still change it.',
   'One side': 'One side',
   'No one-side exercises yet. Switch it on in an exercise’s details.': 'No one-side exercises yet. Switch it on in an exercise’s details.',
+  // --- accent names ---
+  'Ember': 'Ember',
+  'Volt': 'Volt',
+  'Ice': 'Ice',
 }

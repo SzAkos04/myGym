@@ -2262,4 +2262,8 @@ export default {
   'Logs left and right separately when you add this exercise. A plan can still change it.': 'Regista o lado esquerdo e o direito em separado ao adicionar este exercício. Um plano ainda pode alterar isto.',
   'One side': 'Um lado',
   'No one-side exercises yet. Switch it on in an exercise’s details.': 'Ainda não há exercícios de um lado. Ative nos detalhes de um exercício.',
+  // --- accent names ---
+  'Ember': 'Brasa',
+  'Volt': 'Volt',
+  'Ice': 'Gelo',
 }
