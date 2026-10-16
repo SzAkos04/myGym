@@ -2242,4 +2242,11 @@ export default {
   'Your sports watch, calling you back.': '스포츠 시계가 다시 부르고 있어요.',
   'Coach wants you back on the bar.': '코치가 바 앞으로 돌아오래요.',
   'Gentle, for headphones or a quiet room.': '이어폰이나 조용한 곳에 어울려요.',
+  // --- replace a custom exercise ---
+  'Based on': 'Based on',
+  'Exercise replaced': 'Exercise replaced',
+  'Replace with another exercise': 'Replace with another exercise',
+  'Replace with…': 'Replace with…',
+  'Replace “{0}” with “{1}”?': 'Replace “{0}” with “{1}”?',
+  '{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.': '{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.',
 }

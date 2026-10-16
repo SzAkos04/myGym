@@ -2245,4 +2245,11 @@ export default {
   'Your sports watch, calling you back.': 'A sportórád visszahív.',
   'Coach wants you back on the bar.': 'Az edző visszavár a rúdhoz.',
   'Gentle, for headphones or a quiet room.': 'Halk, fülhallgatóhoz vagy csendes helyre.',
+  // --- replace a custom exercise ---
+  'Based on': 'Alapja:',
+  'Exercise replaced': 'Gyakorlat lecserélve',
+  'Replace with another exercise': 'Csere másik gyakorlatra',
+  'Replace with…': 'Csere erre…',
+  'Replace “{0}” with “{1}”?': 'Lecseréled a(z) „{0}” gyakorlatot erre: „{1}”?',
+  '{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.': '{0} naplózott edzés és {1} rutin ezt használja majd: „{2}”, a(z) „{3}” pedig törlődik. Ez nem vonható vissza.',
 }

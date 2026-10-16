@@ -60,6 +60,7 @@ import { workoutsOn, backfillStart, backfillEnd, completeBackfill, historyAsOf, 
 import { moveWorkout, sameWorkout, startTimeOf, durationMinOf, setWorkoutDuration, rebuildPrHistory, MAX_DURATION_MIN, endsInFuture } from './lib/workout-date.js'
 import { editCompletedSession, editLeftEmpty, editedRecord, editChangesNothing } from './lib/session-edit.js'
 import { stampWorkout } from './lib/sync-merge.js'
+import { mergeExerciseInto, mergeImpact } from './lib/exercise-merge.js'
 import { weeklyWeights } from './lib/bodyweight.js'
 import { workoutText } from './lib/workout-text.js'
 import { prsOf } from './lib/pr-derive.js'
@@ -1233,6 +1234,7 @@ function CustomExForm({ existing, prefill, onDone, close }) {
     <CustomMediaField media={media} url={url} onChange={onMedia} />
     <div style={{ height: 14 }} />
     <Button variant="primary" onClick={save}>{existing ? t('Save') : t('Create exercise')}</Button>
+    {existing && <><div style={{ height: 8 }} /><Button icon="swap" onClick={() => { close(); replaceCustomEx(existing) }}>{t('Replace with another exercise')}</Button></>}
     {existing && <><div style={{ height: 8 }} /><Button variant="danger" icon="trash" onClick={() => { close(); deleteCustomEx(existing) }}>{t('Delete exercise')}</Button></>}
   </>
 }
@@ -1262,6 +1264,26 @@ export function deleteCustomEx(ex, afterDelete) {
       afterDelete && afterDelete()
     }
   })
+}
+
+// Folds a custom exercise into another one everywhere it was logged (lib/exercise-merge.js): an
+// import's "chest fly" becomes the catalogue exercise it always was, with its history.
+export function replaceCustomEx(ex, afterReplace) {
+  if (S().active?.entries.some(e => e.id === ex.id)) { toast(t('Finish your current workout first')); return }
+  exercisePicker(target => {
+    if (!target || target.id === ex.id) return
+    const impact = mergeImpact(S(), ex.id)
+    confirmSheet({
+      title: t('Replace “{0}” with “{1}”?', ex.n, target.n),
+      message: t('{0} logged workouts and {1} routines will use “{2}” instead, and “{3}” is removed. This can’t be undone.', impact.workouts, impact.routines, target.n, ex.n),
+      confirmText: t('Replace'), danger: true,
+      onConfirm: () => {
+        update(s => { mergeExerciseInto(s, ex.id, target.id, { exists: id => !!(EXIDX[id] || (s.customEx || []).some(c => c.id === id)) }) })
+        toast(t('Exercise replaced'))
+        afterReplace && afterReplace(target)
+      }
+    })
+  }, { title: t('Replace with…'), like: ex.id })
 }
 
 /* ============================ exercise picker ============================ */
