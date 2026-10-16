@@ -43,7 +43,7 @@ describe('checkForUpdate', () => {
   it('asks GitHub for the latest published release (never a draft or a beta)', async () => {
     mockFetch({ tag_name: 'v' + __APP_VERSION__, assets: [] })
     await checkForUpdate()
-    expect(globalThis.fetch.mock.calls[0][0]).toBe('https://api.github.com/repos/SzAkos04/openGym/releases/latest')
+    expect(globalThis.fetch.mock.calls[0][0]).toBe('https://api.github.com/repos/SzAkos04/myGym/releases/latest')
   })
 
   it('reports no update when the latest release matches the current version', async () => {
@@ -135,7 +135,7 @@ describe('fetchChecksum (web)', () => {
   const serve = text => { globalThis.fetch = vi.fn(() => Promise.resolve({ ok: true, text: () => Promise.resolve(text) })) }
 
   it('reads the hash out of a sha256sum line', async () => {
-    serve('EC2822' + 'a'.repeat(58) + '  openGym-1.4.0.apk\n')
+    serve('EC2822' + 'a'.repeat(58) + '  myGym-1.4.0.apk\n')
     expect(await fetchChecksum('https://x/a.apk.sha256')).toBe('ec2822' + 'a'.repeat(58))
   })
 

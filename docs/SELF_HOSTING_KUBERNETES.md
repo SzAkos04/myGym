@@ -1,10 +1,10 @@
-# Self-hosting openGym on Kubernetes
+# Self-hosting myGym on Kubernetes
 
 Example manifests for a small cluster, contributed from a K3s setup with the Gateway API and
 cert-manager. Read [SELF_HOSTING.md](SELF_HOSTING.md) first: the passkey requirement (HTTPS,
 `RP_ID`, `ORIGIN`), the settings in `.env.example` and the backup advice apply here unchanged.
 
-openGym is pretty simple — a frontend and an API backend. The API keeps everything in plain JSON
+myGym is pretty simple — a frontend and an API backend. The API keeps everything in plain JSON
 files on a volume. The exercise pictures and animations are part of the web image, so nothing is
 downloaded at start-up. There are only a few resources to create:
 
@@ -17,7 +17,7 @@ downloaded at start-up. There are only a few resources to create:
 
 ```bash
 git clone https://github.com/DuarteSantos8/openGym   # or https://gitlab.com/DuarteSantos8/opengym — same repo
-cd openGym
+cd myGym
 # In kubernetes/deployment.yaml, set RP_ID and ORIGIN in spec.template.spec.containers[api].env
 # to your hostname, and the hostname in kubernetes/httproute.yaml.
 kubectl apply -k kubernetes/

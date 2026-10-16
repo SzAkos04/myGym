@@ -1,7 +1,7 @@
 # HTTPS at home without exposing your server
 
-This is a rather complex topic of its own, so it lives apart from the [SELF_HOSTING.md](./SELF_HOSTING.md) which focuses on how to run openGym.
-This document takes a more general approach on how to achieve "https at home", it is not necessarily focused on openGym and applies to self hosting in general.
+This is a rather complex topic of its own, so it lives apart from the [SELF_HOSTING.md](./SELF_HOSTING.md) which focuses on how to run myGym.
+This document takes a more general approach on how to achieve "https at home", it is not necessarily focused on myGym and applies to self hosting in general.
 
 When self-hosting it is often assumed that one needs to expose their services to the internet, this is not necessarily the case.  
 We can have https certificates without having to expose our precious hosts to the world. You can still do that if you want to access your applications from the internet without any VPN, but it's not necessary to take the risk.
@@ -56,7 +56,7 @@ It would not be very nice to have to remember all the ports when we address our 
 Port 443 (https) can only be used once so we would let our proxy answer to that port.
 We configure the proxy to forward requests to our individual services like so:
 ```
-proxy :443 ──┬── openGym   :8080   (the web container; it forwards /api itself)
+proxy :443 ──┬── myGym   :8080   (the web container; it forwards /api itself)
              └── Nextcloud :8081
 ```
 Now we have a nice URL and can forget about the ports. The proxy reads the URL request and forwards it to the target service/host.
@@ -135,7 +135,7 @@ Additional info:
     ```
 
 And that's about it. Now you should be able to access your opengym instance from your local network via https with working passkeys.  
-Be sure to update the openGym config accordingly (`RP_ID=opengym.myhomelab.dedyn.io`, `ORIGIN=https://opengym.myhomelab.dedyn.io` — see [SELF_HOSTING.md](./SELF_HOSTING.md#2-understand-the-passkey-requirement-important)).
+Be sure to update the myGym config accordingly (`RP_ID=opengym.myhomelab.dedyn.io`, `ORIGIN=https://opengym.myhomelab.dedyn.io` — see [SELF_HOSTING.md](./SELF_HOSTING.md#2-understand-the-passkey-requirement-important)).
 
 **If the name does not resolve on your phone:** many home routers (Fritz!Box, some ISP boxes) have *DNS rebind protection* and silently drop public names that resolve to a private IP. Add `myhomelab.dedyn.io` to the router's rebind exception list, or run your own resolver.
 

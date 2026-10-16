@@ -4,7 +4,7 @@ Short answers, with a link to the long one.
 
 ### What does it cost?
 
-Nothing. openGym is open source under the AGPL: no subscription, no paid tier, no ads. If you'd like
+Nothing. myGym is open source under the AGPL: no subscription, no paid tier, no ads. If you'd like
 to support it anyway, there's [Buy Me a Coffee](https://buymeacoffee.com/duartesantos).
 
 ### Do I need my own server?
@@ -21,7 +21,7 @@ No, there are three ways to use it:
 ### Is there an iPhone app?
 
 Not in the App Store, and Apple doesn't allow installing apps from anywhere else. On an iPhone you can
-self-host and add openGym to your home screen from Safari (it's a full PWA that works offline), or
+self-host and add myGym to your home screen from Safari (it's a full PWA that works offline), or
 build the native app onto your own phone with Xcode. Both are described in [MOBILE.md](MOBILE.md).
 An App Store build is on the [roadmap](../ROADMAP.md).
 
@@ -45,7 +45,7 @@ inside the web image, so not even those are downloaded. The AI coach, if an admi
 the training data it needs to the provider you configured; [AI_COACH.md](AI_COACH.md) lists exactly
 what. Push notifications go through your browser's push service, as all web push does.
 
-### Was openGym written with AI?
+### Was myGym written with AI?
 
 It's developed with [Claude Code](https://claude.com/claude-code), Anthropic's coding agent, and a
 large share of the code, tests and docs is drafted that way. The maintainer decides what goes in,
@@ -100,9 +100,9 @@ an exercise and something measured. See [DATA_IMPORTS.md](DATA_IMPORTS.md).
 ### Can I reuse the exercise images in my own project?
 
 No. They are © Aliaksandr Makatserchyk, Gym visual, licensed for use in openGym only and not covered
-by openGym's license. Anything outside openGym needs your own licence from
+by myGym's license. Anything outside myGym needs your own licence from
 [gymvisual.com](https://gymvisual.com/). Details in [NOTICE.md](../NOTICE.md). The exercise text in
-[catalogue/](../catalogue/README.md) is a different story: that's openGym's, and fixes are welcome.
+[catalogue/](../catalogue/README.md) is a different story: that's myGym's, and fixes are welcome.
 
 ### Where do I ask something that isn't here?
 
