@@ -10,8 +10,7 @@
 // against its SHA-256 by the native Install plugin and handed to the system installer.
 
 import { MOBILE } from './mobile.js'
-
-const REPO = 'DuarteSantos8/openGym'
+import { REPO } from './branding.js'
 const LATEST_URL = `https://api.github.com/repos/${REPO}/releases/latest`
 export const RELEASES_PAGE = `https://github.com/${REPO}/releases/latest`
 
