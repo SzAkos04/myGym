@@ -9,6 +9,10 @@ This fork tracks the original openGym (`DuarteSantos8/openGym`, AGPL-3.0-or-late
 | `origin`   | your fork on GitHub (add it: `git remote add origin <url>`) |
 | `upstream` | the original project; push is disabled               |
 
+## Naming
+
+The fork is called **myGym**. `scripts/rebrand.sh` rewrites only the visible word "openGym" and skips upstream URLs, licence and credit lines. Lowercase identifiers (`opengym-*` storage/file names, `OPENGYM_*` env vars, the MCP name, compose project name) are deliberately unchanged: renaming them would orphan existing user data. After a merge, run the script, review `git diff`, commit.
+
 ## Rules that keep merges painless
 
 1. **Fork identity lives in `frontend/src/lib/branding.js`.** Don't hardcode the repo or name elsewhere.
@@ -22,6 +26,7 @@ This fork tracks the original openGym (`DuarteSantos8/openGym`, AGPL-3.0-or-late
 git fetch upstream
 git checkout main && git merge --ff-only upstream/main   # mirror, never diverges
 git checkout custom && git merge main                    # resolve conflicts once; rerere remembers them
+sh scripts/rebrand.sh                                    # re-applies the myGym name to anything new upstream added
 cd frontend && npm test && cd ../api && npm test && cd ../mcp && npm test
 ```
 
