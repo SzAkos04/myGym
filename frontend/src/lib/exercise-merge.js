@@ -64,7 +64,7 @@ export function mergeExerciseInto(S, fromId, toId, { exists = () => true, now = 
 
   // Stamped per-exercise settings: move to the target if it has none, and clear the source with a
   // stamped entry so the clear wins the next merge.
-  for (const [key, clear] of [['loadKind', { kind: null }], ['dbLoad', { mode: null }]]) {
+  for (const [key, clear] of [['loadKind', { kind: null }], ['dbLoad', { mode: null }], ['sideEx', { on: false }]]) {
     const m = S[key]
     if (!m || !(fromId in m)) continue
     if (!(toId in m)) m[toId] = { ...m[fromId], _ts: now }

@@ -2257,4 +2257,7 @@ export default {
   'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)': 'Lado mais fraco: {0} · {1} repetições a menos por série (últimas {2} sessões)',
   'Sides are level over the last {0} sessions': 'Os dois lados estão equilibrados nas últimas {0} sessões',
   'Backrest': 'Encosto',
+  // --- per-exercise one-side setting ---
+  'One side at a time': 'Um lado de cada vez',
+  'Logs left and right separately when you add this exercise. A plan can still change it.': 'Regista o lado esquerdo e o direito em separado ao adicionar este exercício. Um plano ainda pode alterar isto.',
 }

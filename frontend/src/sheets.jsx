@@ -62,6 +62,7 @@ import { editCompletedSession, editLeftEmpty, editedRecord, editChangesNothing }
 import { stampWorkout } from './lib/sync-merge.js'
 import { mergeExerciseInto, mergeImpact } from './lib/exercise-merge.js'
 import { hasSetting } from './lib/setup-note.js'
+import { sideDefaultOf, withSideDefault } from './lib/side-default.js'
 import { sideBalance } from './lib/side-balance.js'
 import { weeklyWeights } from './lib/bodyweight.js'
 import { workoutText } from './lib/workout-text.js'
@@ -1009,6 +1010,15 @@ function ExerciseDetail({ ex, close }) {
       <h4 className="sec">{t('Plate loading')}</h4>
       <BarWeightEditor ex={ex} extra={t('You still log the total weight. This only feeds the plate line under each set.')} />
     </>}
+    {/* Whether this exercise is trained one limb at a time. Always the user's own switch: nothing
+        decides it from the name. New plan slots and freestyle sets start from it; a plan can still
+        change it on its own exercise settings. */}
+    {!isCardio(ex) && <div className="sect-b" style={{ marginTop: 10 }}>
+      <Row icon="sides" iconTint="var(--blue)" title={t('One side at a time')}
+        subtitle={t('Logs left and right separately when you add this exercise. A plan can still change it.')}>
+        <Switch checked={sideDefaultOf(st, ex.id)} onChange={v => update(s => { s.sideEx = withSideDefault(s.sideEx, ex.id, v) })} />
+      </Row>
+    </div>}
     {/* The exercise's own default meaning of its weight (S.dbLoad), stamped like the loading
         above. A routine can still pick its own on the exercise's settings. */}
     {isBellEx(ex) && <>
@@ -1445,7 +1455,7 @@ export function swapActiveWorkoutExercise(index) {
   // The "+" on a picker row commits with the default config, exactly as it does in the add
   // flows; tapping the row still opens the config sheet first.
   // Worded for the session, not the routine: a swap changes today's workout only.
-  const picker = exercisePicker((ex, quick) => quick ? swapTo(ex, defaultConfig(ex.id)) : exConfigSheet(ex, null, cfg => swapTo(ex, cfg), null, null, null, null, t('Use in this workout')), { title: t('Swap exercise'), like: active.entries[index].id })
+  const picker = exercisePicker((ex, quick) => quick ? swapTo(ex, defaultConfig(ex.id, undefined, S())) : exConfigSheet(ex, null, cfg => swapTo(ex, cfg), null, null, null, null, t('Use in this workout')), { title: t('Swap exercise'), like: active.entries[index].id })
   function swapTo(ex, cfg) {
     // The picker is a chooser here, not a stack you keep adding from: one swap, then back to
     // the workout. (The add flow deliberately leaves it open.)
@@ -1679,7 +1689,7 @@ function ExConfig({ ex, existing, onSave, onDelete, onReplace, close, routine, i
   const st = useStore(s => s.S)
   const cardio = isCardio(ex.id)
   const speedUnit = speedUnitOf(st)
-  const seed = existing || initial || defaultConfig(ex.id)
+  const seed = existing || initial || defaultConfig(ex.id, undefined, st)
   const [c, setC] = useState(() => {
     const cfg = { ...seed }
     // A session's target carries the meaning of its dumbbell weight as a stamp (lib/dumbbells.js);
@@ -1706,7 +1716,7 @@ function ExConfig({ ex, existing, onSave, onDelete, onReplace, close, routine, i
   const triple = mode === 'reps' && activePolicy === 'triple'
   // Keep whatever the other mode already had (sets, weight) and fill only what is missing.
   const setMode = m => setC(x => {
-    const next = { ...defaultConfig(ex.id, m), ...x, mode: m }
+    const next = { ...defaultConfig(ex.id, m, st), ...x, mode: m }
     return m === 'reps' && climbsRange(policyFor({ ...next, id: ex.id }, routine, 'reps'))
       ? { ...next, ...normalizeRepRange(next.reps, next.repsMin, isPerSide(next) ? 2 : 1) }
       : next

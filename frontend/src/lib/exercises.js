@@ -214,16 +214,6 @@ const BODYWEIGHT_EQ = new Set(['body weight', 'band', 'resistance band'])
 export const isBodyweightEq = idOrEx =>
   BODYWEIGHT_EQ.has((typeof idOrEx === 'string' ? EXIDX[idOrEx] : idOrEx)?.eq)
 
-// Catalogue names that describe one limb at a time ("one arm", "single leg", "unilateral"). Such an
-// exercise starts out logged per side (cfg.side), so a weaker side shows instead of hiding in a
-// combined row. "Alternating"/"alternate" is deliberately not matched: both limbs work in turn,
-// so the combined count is the honest one.
-const UNILATERAL_NAME = /\b(?:one|single)[ -](?:arm|leg|hand)\b|\bunilateral\b/i
-export const isUnilateralEx = idOrEx => {
-  const ex = typeof idOrEx === 'string' ? EXIDX[idOrEx] : idOrEx
-  return !!ex && UNILATERAL_NAME.test(String(ex.n || ex.name || ''))
-}
-
 // Equipment that is a load in its own right: a bar, a bell, a stack, a sled, a weight. A set on
 // one of these logged at 0 kg is a number nobody typed in. The rest of the catalogue that is not
 // bodyweight — an ab wheel, a stability ball, a bosu, a rope, a roller, the "assisted" straps —

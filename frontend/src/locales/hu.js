@@ -2260,4 +2260,7 @@ export default {
   'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)': 'Gyengébb oldal: {0} · {1} ismétléssel kevesebb sorozatonként (utolsó {2} edzés)',
   'Sides are level over the last {0} sessions': 'A két oldal egyforma az utolsó {0} edzésen',
   'Backrest': 'Háttámla',
+  // --- per-exercise one-side setting ---
+  'One side at a time': 'Egyszerre egy oldal',
+  'Logs left and right separately when you add this exercise. A plan can still change it.': 'A gyakorlat hozzáadásakor a bal és a jobb oldalt külön naplózza. A terv ezt még felülbírálhatja.',
 }

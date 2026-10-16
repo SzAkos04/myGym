@@ -2268,4 +2268,7 @@ export default {
   'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)': 'Weaker side: {0} · {1} reps fewer per set (last {2} sessions)',
   'Sides are level over the last {0} sessions': 'Sides are level over the last {0} sessions',
   'Backrest': 'Backrest',
+  // --- per-exercise one-side setting ---
+  'One side at a time': 'One side at a time',
+  'Logs left and right separately when you add this exercise. A plan can still change it.': 'Logs left and right separately when you add this exercise. A plan can still change it.',
 }
