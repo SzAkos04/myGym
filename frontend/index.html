@@ -27,8 +27,18 @@
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-180.png">
+<style>
+  /* Shown from the first byte, so a cold start is the icon on the app's own black and not a blank
+     page; main.jsx fades it out once the app has drawn. */
+  #splash{position:fixed;inset:0;z-index:9999;background:#0b0a09;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+  #splash.out{opacity:0;pointer-events:none}
+  #splash img{width:96px;height:96px;border-radius:22px;animation:splashin .5s cubic-bezier(.32,.72,0,1) both}
+  @keyframes splashin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){#splash,#splash img{animation:none;transition:none}}
+</style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><img src="icon-180.png" alt=""></div>
 <div id="root"></div>
 <script type="module" src="/src/main.jsx"></script>
 </body>

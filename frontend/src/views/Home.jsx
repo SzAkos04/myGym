@@ -102,6 +102,7 @@ export default function Home() {
   const prevFrom = new Date(curStart); prevFrom.setDate(curStart.getDate() - 7)
   const prevTo = new Date(curStart); prevTo.setDate(curStart.getDate() - 1)
   const setsDelta = sets.total - weeklyWorkingSets(S.workouts, isoOf(prevFrom), isoOf(prevTo)).total
+  const setsMax = Math.max(1, ...sets.groups.map(g => g.sets))
   const lastW = lastWorkoutSummary(S.workouts)
   const sum = todaySummary(S.workouts, todayRoutines, todayISO())
   const doneSum = doneToday ? lastWorkoutSummary([doneToday]) : null
@@ -232,9 +233,15 @@ export default function Home() {
       <div className="row between"><h2 style={{ margin: 0 }}>{t('Working sets this week')}</h2>
         <span className="small muted">{tn('{0} set', '{0} sets', sets.total)}{setsDelta !== 0 && <> <span className={setsDelta > 0 ? 'delta-up' : 'dim'}>{setsDelta > 0 ? '+' : '−'}{Math.abs(setsDelta)}</span></>}</span></div>
       <div className="wsets">
-        {sets.groups.map(g => <div key={g.key} className="wset">
+        {sets.groups.map((g, gi) => <div key={g.key} className="wset">
           <span>{t(g.name)}</span>
-          <div className="blocks" aria-hidden="true">{Array.from({ length: Math.min(g.sets, 20) }, (_, i) => <i key={i} />)}{g.sets > 20 && <em>+</em>}</div>
+          {/* Every row has as many slots as the busiest group has sets, so the busiest fills the
+              whole track and the others fill their share of it. Past 20 the blocks would be
+              slivers, so the track becomes one bar of the same proportion. */}
+          {setsMax <= 20
+            ? <div className="blocks" aria-hidden="true">{Array.from({ length: setsMax }, (_, i) =>
+              <i key={i} className={i < g.sets ? 'on' : ''} style={i < g.sets ? { animationDelay: (gi * 60 + i * 25) + 'ms' } : undefined} />)}</div>
+            : <div className="blocks bar" aria-hidden="true"><i className="on" style={{ width: (g.sets / setsMax * 100) + '%', animationDelay: (gi * 60) + 'ms' }} /></div>}
           <b>{g.sets}</b>
         </div>)}
       </div>

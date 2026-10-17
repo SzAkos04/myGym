@@ -184,8 +184,17 @@ body.resting #app{padding-bottom:calc(166px + var(--sab))}
 body.no-tabbar #app{padding-bottom:calc(24px + var(--sab))}
 body.no-tabbar.resting #app{padding-bottom:calc(96px + var(--sab))}
 .workout-end-spacer{height:0}
-@keyframes viewfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-#app.vfade{animation:viewfade var(--med) var(--ease)}
+@keyframes viewfade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#app.vfade{animation:viewfade 260ms var(--ease)}
+/* The cards of a screen arrive one after the other instead of all at once. Only the first few,
+   so a long screen is not still animating when you start to scroll. */
+#app.vfade .narrow>.card,#app.vfade .narrow>.hdr{animation:cardin 360ms var(--ease) both}
+#app.vfade .narrow>.hdr{animation-delay:0ms}
+#app.vfade .narrow>.card:nth-child(2){animation-delay:40ms}
+#app.vfade .narrow>.card:nth-child(3){animation-delay:80ms}
+#app.vfade .narrow>.card:nth-child(4){animation-delay:120ms}
+#app.vfade .narrow>.card:nth-child(5){animation-delay:160ms}
+@keyframes cardin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
 /* Connection indicator (components/SyncBanner.jsx): pinned under the status bar for as long as
    the app is not connected to a server. It carries the page's own ground and blur, like the
@@ -420,7 +429,10 @@ h4.sec{
    fades it as one shape — and it does that for every icon, not just this one. */
 #tabbar button .icn{font-size:25px;--icon-stroke:1.65;color:var(--label)}
 #tabbar button.on{color:var(--acc)}
+#tabbar .tab-ic{transition:background var(--med) var(--ease),padding var(--med) var(--ease)}
 #tabbar button.on:not(.start) .tab-ic{background:var(--acc-soft);border-radius:12px;padding:2px 14px;margin:-2px 0}
+#tabbar button .icn{transition:transform var(--med) var(--ease)}
+#tabbar button.on:not(.start) .icn{transform:translateY(-1px) scale(1.06)}
 #tabbar button.on .icn{--icon-stroke:2;color:inherit;opacity:1}
 /* A connection problem while the banner is switched off (Settings → Show connection status):
    a dot on the Home tab and on the Settings gear. */
@@ -1955,8 +1967,12 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .wsets{margin-top:12px;display:grid;gap:10px}
 .wset{display:grid;grid-template-columns:84px 1fr 28px;gap:8px;align-items:center;font-size:13px;color:var(--label-2)}
 .wset .blocks{display:flex;gap:3px;min-width:0}
-.wset .blocks i{flex:1;max-width:11px;height:16px;border-radius:4px;background:var(--acc)}
-.wset .blocks em{font-style:normal;font-size:12px;color:var(--label-2);margin-left:2px;line-height:16px}
+/* empty slots are only a ghost of the track; filled ones grow in, left to right */
+.wset .blocks i{flex:1 1 0;min-width:0;height:16px;border-radius:5px;background:var(--surface-3);opacity:.55}
+.wset .blocks i.on{background:var(--acc);opacity:1;transform-origin:left center;animation:blockin .42s var(--ease) both}
+.wset .blocks.bar{height:16px;border-radius:5px;background:var(--surface-3)}
+.wset .blocks.bar i{flex:none;height:16px;opacity:1}
+@keyframes blockin{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
 .wset b{text-align:end;font-size:15px;font-weight:800;color:var(--label);font-variant-numeric:tabular-nums}
 
 /* Only where a pointer really hovers — on a phone :hover sticks to the row after the tap.

@@ -14,6 +14,15 @@ createRoot(document.getElementById('root')).render(
   <StrictMode><App /></StrictMode>
 )
 
+// The splash in index.html fades out once the first frame of the app is on screen.
+const splash = document.getElementById('splash')
+if (splash) {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    splash.classList.add('out')
+    setTimeout(() => splash.remove(), 450)
+  }))
+}
+
 // The photos and videos of custom exercises, in every build (the phone and the demo included):
 // uploads of what the server lacks, the local clean-up, and the plan's files kept offline.
 startMediaSync(useStore)
