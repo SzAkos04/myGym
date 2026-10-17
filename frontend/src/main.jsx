@@ -17,9 +17,14 @@ createRoot(document.getElementById('root')).render(
 // The splash in index.html fades out once the first frame of the app is on screen.
 const splash = document.getElementById('splash')
 if (splash) {
+  // Held for a moment even when the app is ready sooner, so it reads as a launch screen and not a
+  // flicker; counted from the start of the page load, so a slow start does not wait any longer.
+  const MIN_MS = 650
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    splash.classList.add('out')
-    setTimeout(() => splash.remove(), 450)
+    setTimeout(() => {
+      splash.classList.add('out')
+      setTimeout(() => splash.remove(), 600)
+    }, Math.max(0, MIN_MS - performance.now()))
   }))
 }
 

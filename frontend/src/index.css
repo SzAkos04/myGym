@@ -227,6 +227,10 @@ html[data-vt-ok] #app.vfade,html[data-vt-ok] #app.vfade .narrow>.card,html[data-
 html[data-vt-ok] #app.vfade::after{display:none}
 #tabbar{view-transition-name:tabbar}
 #timer{view-transition-name:rest-timer}
+/* A screen change must not swallow the taps made while it plays: without this the pseudo-elements the
+   browser draws for the transition sit on top of the page, and a tap on a tab right after another
+   one was lost, so it took two. */
+::view-transition,::view-transition-group(*),::view-transition-image-pair(*),::view-transition-old(*),::view-transition-new(*){pointer-events:none}
 ::view-transition-group(root){animation-duration:0s}
 ::view-transition-old(root),::view-transition-new(root){
   animation-duration:480ms;animation-timing-function:cubic-bezier(.32,.72,0,1);animation-fill-mode:both;mix-blend-mode:normal}
@@ -509,6 +513,12 @@ h4.sec{
    fade on the <svg> instead of in the stroke colour flattens the icon first and
    fades it as one shape — and it does that for every icon, not just this one. */
 #tabbar button .icn{font-size:25px;--icon-stroke:1.65;color:var(--label)}
+/* The tap target is bigger than the icon and label: the whole bar height, a little beyond the
+   sides, and down through the gap and the safe area under the floating bar, so a thumb that lands
+   a bit low or between two tabs still counts. Only the invisible area grows, not what is drawn. */
+#tabbar button{position:relative}
+#tabbar button::before{content:'';position:absolute;inset:-8px -3px calc(-9px - var(--sab)) -3px}
+#tabbar button.start::before{inset:-8px -10px calc(-9px - var(--sab)) -10px}
 #tabbar button.on{color:var(--acc)}
 #tabbar .tab-ic{transition:background var(--med) var(--ease),padding var(--med) var(--ease)}
 @supports (transition-timing-function:linear(0,1)){#tabbar button .icn,#tabbar button.start .cir{transition-timing-function:var(--spring);transition-duration:.45s}}
