@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { saveSnapshot, getSnapshot, recordPath, pathBefore, resetSnapshots } from './screen-snapshots.js'
+import { saveSnapshot, getSnapshot, pushEntry, popEntries, entryCount, previousPath, resetSnapshots } from './screen-snapshots.js'
 
 beforeEach(resetSnapshots)
 
@@ -18,14 +18,27 @@ describe('screen copies', () => {
   })
 })
 
-describe('the path before an entry', () => {
-  it('follows the history: a push after a step back drops the entries beyond it', () => {
-    recordPath(0, '/home'); recordPath(1, '/settings'); recordPath(2, '/settings/sounds')
-    expect(pathBefore(2)).toBe('/settings')
-    expect(pathBefore(1)).toBe('/home')
-    expect(pathBefore(0)).toBeNull()
-    recordPath(2, '/settings/alerts')                    // went back one, then somewhere else
-    expect(pathBefore(2)).toBe('/settings')
-    expect(pathBefore(3)).toBe('/settings/alerts')
+describe('the app\'s own history', () => {
+  const e = path => ({ path, loc: { pathname: path, search: '', hash: '', state: null } })
+  it('puts the screen left behind on a stack and takes entries off on a step back', () => {
+    pushEntry(e('/home')); pushEntry(e('/settings'))
+    expect(entryCount()).toBe(2)
+    expect(previousPath()).toBe('/settings')
+    expect(popEntries(1).path).toBe('/settings')        // one step back lands on the screen left last
+    expect(entryCount()).toBe(1)
+    expect(previousPath()).toBe('/home')
+  })
+  it('steps back several at once, never past the first, and says so when there is nothing', () => {
+    pushEntry(e('/home')); pushEntry(e('/settings')); pushEntry(e('/settings/sounds'))
+    expect(popEntries(2).path).toBe('/settings')
+    expect(popEntries(5).path).toBe('/home')
+    expect(entryCount()).toBe(0)
+    expect(popEntries(1)).toBeNull()
+    expect(previousPath()).toBeNull()
+  })
+  it('does not grow without end', () => {
+    for (let i = 0; i < 100; i++) pushEntry(e('/p' + i))
+    expect(entryCount()).toBe(60)
+    expect(previousPath()).toBe('/p99')
   })
 })

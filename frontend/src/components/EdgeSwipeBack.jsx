@@ -1,18 +1,18 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isIosApp, markGesture, takeGesture } from '../lib/screen-motion.js'
-import { getSnapshot, pathBefore } from '../lib/screen-snapshots.js'
+import { getSnapshot, previousPath, entryCount } from '../lib/screen-snapshots.js'
 import { EDGE, progressOf, shouldComplete, underShift, dimAt } from '../lib/edge-swipe.js'
 
 // The swipe back from the left edge, in the installed iOS app, done by the app itself. The system's
 // own gesture shows a snapshot of the previous screen under the page, and that snapshot is missing
 // when the page was scrolled (a black screen until the animation ends). So the touch that starts at
-// the edge is taken here (preventDefault keeps the system's gesture from starting as well): the screen
-// follows the finger, a copy of the previous screen kept as it was left (lib/screen-snapshots.js)
+// the edge is taken here: the screen follows the finger, a copy of the previous screen kept as it was left (lib/screen-snapshots.js)
 // drifts in beneath it, and on release it either goes back one step or springs back.
 //
-// It only starts when there is a step back, a copy of that screen to show and no sheet open; any other
-// edge touch is left to the system, as before.
+// It only starts when there is a step back, a copy of that screen to show and no sheet open. The
+// browser has no earlier entry of its own in this app (components/ViewRouter.jsx), so the system's
+// edge swipe has nothing to act on and this is the only gesture.
 export default function EdgeSwipeBack() {
   const nav = useNavigate()
   useEffect(() => {
@@ -45,10 +45,9 @@ export default function EdgeSwipeBack() {
       if (g || e.touches.length !== 1) return
       const t = e.touches[0]
       if (t.clientX > EDGE) return
-      const idx = window.history.state?.idx || 0
-      if (idx <= 0) return
+      if (entryCount() <= 0) return
       if (document.body.style.position === 'fixed' || document.getElementById('modal-root')?.classList.contains('open')) return
-      const snap = getSnapshot(pathBefore(idx))
+      const snap = getSnapshot(previousPath())
       const app = live()
       if (!snap || !app) return                                   // nothing to show beneath: the system's gesture stays
       e.preventDefault()

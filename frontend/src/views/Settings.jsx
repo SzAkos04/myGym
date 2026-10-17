@@ -45,6 +45,7 @@ import { usePasskeys, PasskeysRow, DeviceLinkRow, openDeviceLinkRedeem } from '.
 import { Section, Row, SelectRow, Switch, Segmented, Button, TextField, SearchField } from '../components/ui.jsx'
 import { PAGES, ROOT_GROUPS, pageVisible, searchSettings, pageTrail } from './settings-pages.js'
 import { REPO as FORK_REPO, UPSTREAM_REPO } from '../lib/branding.js'
+import { entryCount } from '../lib/screen-snapshots.js'
 
 /* Settings (v1.3.11). The root is one screen: an account card, eleven rows that each open a page
    (/settings/<page>), and a search over every row. Rare things live one level further down
@@ -424,7 +425,7 @@ export default function Settings({ page = null, find = null, via = null }) {
   // all do the same); a page opened from a link with nothing behind it goes up to its parent.
   const back = () => {
     const up = PAGES[page]?.parent ? '/settings/' + PAGES[page].parent : '/settings'
-    if ((window.history.state?.idx || 0) > 0) nav(-1)
+    if ((window.history.state?.idx || 0) > 0 || entryCount() > 0) nav(-1)
     else nav(up, { replace: true })
   }
 
