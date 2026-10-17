@@ -42,7 +42,10 @@ export default function TabBar({ onStart }) {
     nav('/workout')
   }
 
-  return (
+  return (<>
+    {/* The page fades into its own background towards the bar, so nothing orange (the set bars, a play
+        button) reaches the Start button from behind; see #tabfade in index.css. */}
+    <div id="tabfade" aria-hidden="true" />
     <nav id="tabbar">
       <Tab active={on('home')} icon="house" label={t('Home')} dot={trouble} onClick={() => nav('/home')} />
       <Tab active={on('plan')} icon="calendar" label={t('Plan')} onClick={() => nav('/plan')} />
@@ -62,5 +65,5 @@ export default function TabBar({ onStart }) {
       <Tab active={on('stats')} icon="chart" label={t('Stats')} onClick={() => nav('/stats')} />
       <Tab active={on('library')} icon="dumbbell" label={t('Exercises')} onClick={() => nav('/library')} />
     </nav>
-  )
+  </>)
 }

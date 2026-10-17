@@ -115,3 +115,14 @@ describe('the tab icons and labels', () => {
     } finally { vi.useRealTimers() }
   })
 })
+
+describe('the fade behind the bar', () => {
+  it('is drawn with the bar, takes no touches, and is not one of its buttons', () => {
+    act(() => { root.render(<TabBar onStart={() => {}} />) })
+    const fade = host.querySelector('#tabfade')
+    expect(fade).not.toBeNull()
+    expect(fade.getAttribute('aria-hidden')).toBe('true')
+    expect(fade.closest('#tabbar')).toBeNull()
+    expect(host.querySelectorAll('#tabbar button')).toHaveLength(5)
+  })
+})
