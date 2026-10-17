@@ -63,6 +63,7 @@ import { stampWorkout } from './lib/sync-merge.js'
 import { mergeExerciseInto, mergeImpact } from './lib/exercise-merge.js'
 import { hasSetting } from './lib/setup-note.js'
 import { sideDefaultOf, withSideDefault } from './lib/side-default.js'
+import { workoutMuscles } from './lib/home-stats.js'
 import { sideBalance } from './lib/side-balance.js'
 import { weeklyWeights } from './lib/bodyweight.js'
 import { workoutText } from './lib/workout-text.js'
@@ -2824,7 +2825,8 @@ export function WorkoutRow({ w, onClick }) {
   return <div className="item" {...tappable(onClick)}>
     <span className="lrow-i" style={{ width: 34, height: 34, borderRadius: 8, fontSize: 19 }}><Icon name={glyph} /></span>
     <div className="grow"><div className="tt">{w.name}</div>
-      <div className="ss">{[fmtDate(w.d, true), ...durPart(w.end - w.start), tn('{0} set', '{0} sets', setsDone(w)), fmtVol(w.vol, st.unit)].join(' · ')}</div></div>
+      <div className="ss">{[fmtDate(w.d, true), ...durPart(w.end - w.start), tn('{0} set', '{0} sets', setsDone(w)), fmtVol(w.vol, st.unit)].join(' · ')}</div>
+      {workoutMuscles(w).length > 0 && <div className="hero-muscles">{workoutMuscles(w).map(m => <span key={m}>{t(m)}</span>)}</div>}</div>
     {mediaN > 0 && <span className="wrow-media" title={tn('{0} photo or video', '{0} photos or videos', mediaN)} aria-label={tn('{0} photo or video', '{0} photos or videos', mediaN)}><Icon name="image" />{mediaN}</span>}
     {prs.length > 0 && <span className="pr"><Icon name="trophy" />{prs.length} PR</span>}
     <Icon name="chevronRight" className="chev" />
