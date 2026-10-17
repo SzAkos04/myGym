@@ -37,7 +37,7 @@ beforeEach(() => {
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.useRealTimers() })
 
 describe('minimizing the workout in the installed iOS app', () => {
-  it('sinks the screen over Home and its tab bar, and only then changes the route', () => {
+  it('sinks the screen over Home and its tab bar as slowly as it rose, and only then changes the route', () => {
     act(() => { nav('/workout') })
     saveSnapshot('/home', document.createElement('div'))
     const bar = document.createElement('nav'); bar.id = 'tabbar'
@@ -51,7 +51,10 @@ describe('minimizing the workout in the installed iOS app', () => {
     // the copy of the tab bar lies on the picture beneath, not over the sliding screen
     expect(document.querySelector('.screen-under #tabbar')).not.toBeNull()
     expect(app.dataset.path).toBe('/workout')
+    expect(app.style.transition).toContain('480ms')                      // as long as the rise
     act(() => { vi.advanceTimersByTime(300) })
+    expect(document.getElementById('app').dataset.path).toBe('/workout')  // still sinking
+    act(() => { vi.advanceTimersByTime(200) })
     expect(document.getElementById('app').dataset.path).toBe('/home')
     act(() => { vi.advanceTimersByTime(100) })
     expect(document.querySelector('.screen-under')).toBeNull()

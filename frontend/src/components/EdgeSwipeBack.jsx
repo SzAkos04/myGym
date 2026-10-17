@@ -37,14 +37,16 @@ export default function EdgeSwipeBack() {
       if (g?.app) { g.app.style.transform = ''; g.app.style.transition = ''; g.app.style.boxShadow = ''; g.app.style.willChange = '' }
       g = null
     }
-    const settle = (toDx, then) => {
+    // 280 ms after a finger, which has already carried the screen part of the way; the workout sinking
+    // away takes as long as it took to rise (index.css scr-up-in, 480 ms), or it looked like a drop.
+    const settle = (toDx, then, ms = 280) => {
       const W = span()
-      g.app.style.transition = 'transform 280ms cubic-bezier(.32,.72,0,1)'
-      g.copy.style.transition = 'transform 280ms cubic-bezier(.32,.72,0,1)'
+      g.app.style.transition = `transform ${ms}ms cubic-bezier(.32,.72,0,1)`
+      g.copy.style.transition = `transform ${ms}ms cubic-bezier(.32,.72,0,1)`
       g.under.style.transition = 'none'
       place(toDx)
       g.under.style.setProperty('--dim', dimAt(progressOf(toDx, W)))
-      setTimeout(then, 290)
+      setTimeout(then, ms + 10)
     }
 
     const start = e => {
@@ -112,7 +114,7 @@ export default function EdgeSwipeBack() {
       // the workout sinks off it, and the real one takes the same place when the route changes.
       if (kind === 'down') for (const n of getTabBar() || []) g.under.appendChild(n.cloneNode(true))
       void app.offsetWidth                                        // the start must be painted, or there is nothing to move from
-      settle(span(), arrive(proceed))
+      settle(span(), arrive(proceed), kind === 'down' ? 480 : 280)
       return true
     })
 
