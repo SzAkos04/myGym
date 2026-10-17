@@ -100,9 +100,28 @@ const flavor = {
 const pkgVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version
 const appVersion = process.env.APP_BUILD ? `${pkgVersion}+${process.env.APP_BUILD}` : pkgVersion
 
-export default defineConfig({
-  define: { __APP_VERSION__: JSON.stringify(appVersion) },
-  plugins: [react(), umami, flavor, swStamp, catalogueMedia],
+// Which languages a build ships. Each other language's packs (UI text, exercise names, exercise
+// instructions) are built as empty modules: the files stay in the repo, so pulling upstream never
+// conflicts over them, but they add nothing to the bundle or to what the service worker downloads
+// on every install and update. `APP_LANGS=all` ships every language; a list ("en,de,hu") picks.
+const langsEnv = (process.env.APP_LANGS || 'en,hu,de').trim()
+const appLangs = langsEnv === 'all' ? null : langsEnv.split(',').map(l => l.trim().split('-')[0]).filter(Boolean)
+const packLangs = {
+  name: 'opengym-langs',
+  apply: 'build',
+  enforce: 'pre',
+  load(id) {
+    if (!appLangs) return null
+    const m = id.split('?')[0].replace(/\\/g, '/').match(/\/src\/(?:locales|exercise-names|instr)\/([A-Za-z-]+)\.js$/)
+    if (!m || m[1] === 'en' || appLangs.includes(m[1].split('-')[0])) return null
+    return 'export default {}'
+  }
+}
+
+export default defineConfig(({ command }) => ({
+  // __APP_LANGS__ narrows the language picker (lib/i18n-core.js); in dev and tests it is null: everything.
+  define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_LANGS__: command === 'build' && appLangs ? JSON.stringify(appLangs) : 'null' },
+  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs],
   base: './',
   server: {
     // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core
@@ -117,4 +136,4 @@ export default defineConfig({
     }
   },
   build: { chunkSizeWarningLimit: 1500 }
-})
+}))

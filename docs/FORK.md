@@ -13,6 +13,10 @@ This fork tracks the original openGym (`DuarteSantos8/openGym`, AGPL-3.0-or-late
 
 The fork is called **myGym**. `scripts/rebrand.sh` rewrites only the visible word "openGym" and skips upstream URLs, licence and credit lines. Lowercase identifiers (`opengym-*` storage/file names, `OPENGYM_*` env vars, the MCP name, compose project name) are deliberately unchanged: renaming them would orphan existing user data. After a merge, run the script, review `git diff`, commit.
 
+## Languages
+
+A build ships English, Hungarian and German only (`APP_LANGS=en,hu,de`, the default in `frontend/vite.config.js`). The other languages' files stay in the repo, so `git merge upstream` never conflicts over them; they are just built as empty modules, which takes the build from about 23 MB of JavaScript to about 7 MB (the service worker downloads all of it on every install and update). Build everything again with `APP_LANGS=all npm run build`, or pick your own list: `APP_LANGS=en,de,fr`.
+
 ## Rules that keep merges painless
 
 1. **Fork identity lives in `frontend/src/lib/branding.js`.** Don't hardcode the repo or name elsewhere.

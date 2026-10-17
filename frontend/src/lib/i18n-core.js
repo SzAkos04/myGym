@@ -3,12 +3,17 @@
 // (import.meta.glob lazy
 // loads, the React subscription hook) live in i18n.js and re-export from here.
 
-export const LANGS = {
+const ALL_LANGS = {
   en: 'English', de: 'Deutsch', 'de-CH': 'Deutsch (Schweiz)', es: 'Español', fr: 'Français',
   it: 'Italiano', pt: 'Português (Portugal)', 'pt-BR': 'Português (Brasil)', pl: 'Polski',
   tr: 'Türkçe', ru: 'Русский', uk: 'Українська', zh: '简体中文', 'zh-TW': '繁體中文',
   ko: '한국어', hi: 'हिन्दी', bn: 'বাংলা', th: 'ไทย', hu: 'Magyar', ar: 'العربية'
 }
+// A build can ship fewer languages (vite.config.js APP_LANGS → __APP_LANGS__). A language that is
+// not shipped is not offered, and a profile that had one falls back to English like any unknown key.
+export const LANGS = typeof __APP_LANGS__ !== 'undefined' && Array.isArray(__APP_LANGS__)
+  ? Object.fromEntries(Object.entries(ALL_LANGS).filter(([k]) => __APP_LANGS__.includes(k.split('-')[0])))
+  : ALL_LANGS
 // Languages with exercise instructions / names, generated from catalogue/i18n by
 // scripts/catalogue/build.mjs. A pack can be partial; what it lacks shows in English.
 import { INSTR_LANGS, EXERCISE_NAME_LANGS } from './catalogue-langs.js'

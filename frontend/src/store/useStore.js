@@ -75,7 +75,8 @@ function logoutOwed(on) {
 // one — { owner, ts }, written after it (saveMirror). A device fact, so never inside S.
 const MIRROR_OWNER_FILE = 'opengym-state-owner.json'
 const CHECK_MIN_MS = 3000    // rev checks closer together than this are the same event (focus + visibility)
-const POLL_MS = 30000        // while the app is open and signed in, ask the server for its revision this often
+const POLL_MS = 60000        // while the app is open, visible and signed in, ask the server for its revision this often…
+const POLL_MAX_MS = 180000  // …and less often as polls keep finding nothing new (one step longer per four quiet polls)
 const AUTO_BACKUP_SOON_MS = 2000   // several photos picked at once make one backup
 // Whether `next` has a workout photo or video that `prev` had on none of its workouts.
 const workoutMediaHashes = S => (Array.isArray(S?.workouts) ? S.workouts : [])
@@ -85,7 +86,7 @@ const gainedWorkoutMedia = (prev, next) => {
   return workoutMediaHashes(next).some(h => !had.has(h))
 }
 export const DEF = {
-  unit: 'kg', restSec: 90, restPauseSec: 15, sound: true, soundOnSilent: false, vibrateOnSilent: false, timerFlash: false, timedSetOvertime: false, keepAwake: true, lang: 'en',
+  unit: 'kg', restSec: 90, restPauseSec: 15, sound: true, soundOnSilent: false, vibrateOnSilent: false, timerFlash: false, timedSetOvertime: false, keepAwake: false, lang: 'en',
   theme: 'dark', accent: 'ember', body: 'male', targetW: null,
   bodyweight: [], routines: [], week: {}, dayPlan: {},
   // A note per day off (#261): { [iso]: { tag, text, _ts } } (lib/day-notes.js). A noted day is
@@ -322,6 +323,7 @@ export const useStore = create((set, get) => {
   let importRead = null    // what importConflict last read: { uid, state, rev }
   let lastCheck = 0
   let pollTm = null
+  let quietPolls = 0   // polls in a row that found the server unchanged
   let offlineChanges = false   // a push failed for lack of network — the next one that lands says so
   let backupTm = null      // phone: the auto-backup after workout media changed, on its debounce
   let adoptHold = false    // a sign-in's adoption has not decided yet: no pull, no push (ADOPT_KEY)
@@ -645,19 +647,27 @@ export const useStore = create((set, get) => {
     if (!base || owes()) return get().pullState()
     try {
       const { rev, wid } = await api('/api/data/rev')
-      if (rev !== base.rev || (base.wid && wid && wid !== base.wid)) return get().pullState()
+      if (rev !== base.rev || (base.wid && wid && wid !== base.wid)) { quietPolls = 0; return get().pullState() }
       confirmed(get().S)   // nothing moved on either side
+      quietPolls++
     } catch (e) {
       if (isNetworkError(e) || refused(e)) failed(e)
       else return get().pullState()   // a server that lacks the route (older API) — the full pull knows the old protocol
     }
   }
+  // No polling while the screen is off or the app is in the background: nothing can be done with
+  // the answer there, and every wake-up costs battery. Coming back to the app runs a check at once
+  // (visibilitychange, focus) and starts the polling again.
   const schedulePoll = () => {
     clearTimeout(pollTm)
-    pollTm = setTimeout(() => { checkRev(); schedulePoll() }, POLL_MS)
+    pollTm = null
+    if (document.visibilityState === 'hidden') return
+    const wait = Math.min(POLL_MAX_MS, POLL_MS * (1 + Math.floor(quietPolls / 4)))
+    pollTm = setTimeout(() => { checkRev(); schedulePoll() }, wait)
   }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkRev() })
-  window.addEventListener('focus', () => checkRev())
+  const resumePolling = () => { quietPolls = 0; checkRev(); schedulePoll() }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resumePolling(); else schedulePoll() })
+  window.addEventListener('focus', () => resumePolling())
   window.addEventListener('pageshow', e => { if (e.persisted) checkRev() })
   window.addEventListener('online', () => checkRev(true))   // also retries a push that failed offline
   onAppActive(() => checkRev())
