@@ -10,7 +10,8 @@ export default function ScreenGhost() {
   useLayoutEffect(() => {
     const el = ref.current?.parentElement
     return () => {
-      if (!el || import.meta.env.MODE === 'test' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+      // With View Transitions (ViewRouter) the browser animates the old screen itself.
+      if (!el || document.documentElement.dataset.vtOk || import.meta.env.MODE === 'test' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
       const dir = getMotion()
       if (dir === 'none') return
       const wrap = document.createElement('div')

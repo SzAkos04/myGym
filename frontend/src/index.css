@@ -216,6 +216,41 @@ body.no-tabbar.resting #app{padding-bottom:calc(96px + var(--sab))}
   content:'';position:absolute;inset:0;background:#000;pointer-events:none;z-index:5;animation:scr-dim-out 460ms var(--ease) both}
 @keyframes scr-dim-out{from{opacity:.24}to{opacity:0}}
 
+/* ---- View Transitions (components/ViewRouter.jsx): the browser snapshots the old and the new screen and
+   animates them on the GPU, like an iOS app's navigation. html[data-vt] says which kind:
+     tab    a soft cross-fade with a hint of depth; the tab bar stays where it is (it has its own name);
+     push   the new screen slides in from the right over the old, which drifts left and dims;
+     pop    the leaving screen slides off to the right, the one beneath drifts back in from a dim;
+     up     the workout rises over everything, the old screen sinks back a little; down: the reverse.
+   Where the API exists these replace the DOM-copy animation above (html[data-vt-ok]). */
+html[data-vt-ok] #app.vfade,html[data-vt-ok] #app.vfade .narrow>.card,html[data-vt-ok] #app.vfade .narrow>.hdr{animation:none!important}
+html[data-vt-ok] #app.vfade::after{display:none}
+#tabbar{view-transition-name:tabbar}
+#timer{view-transition-name:rest-timer}
+::view-transition-group(root){animation-duration:0s}
+::view-transition-old(root),::view-transition-new(root){
+  animation-duration:480ms;animation-timing-function:cubic-bezier(.32,.72,0,1);animation-fill-mode:both;mix-blend-mode:normal}
+html[data-vt="tab"]::view-transition-old(root){animation:vt-tab-out 180ms ease-in both}
+html[data-vt="tab"]::view-transition-new(root){animation:vt-tab-in 320ms cubic-bezier(.32,.72,0,1) both}
+html[data-vt="push"]::view-transition-old(root){animation-name:vt-push-old}
+html[data-vt="push"]::view-transition-new(root){animation-name:vt-push-new;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.32)}
+html[data-vt="pop"]::view-transition-old(root){animation-name:vt-pop-old;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.32)}
+html[data-vt="pop"]::view-transition-new(root){animation-name:vt-pop-new}
+html[data-vt="up"]::view-transition-old(root){animation-name:vt-up-old}
+html[data-vt="up"]::view-transition-new(root){animation-name:vt-up-new;z-index:2;box-shadow:0 -14px 34px rgba(0,0,0,.34)}
+html[data-vt="down"]::view-transition-old(root){animation-name:vt-down-old;z-index:2;box-shadow:0 -14px 34px rgba(0,0,0,.34)}
+html[data-vt="down"]::view-transition-new(root){animation-name:vt-down-new}
+@keyframes vt-tab-out{from{opacity:1}to{opacity:0}}
+@keyframes vt-tab-in{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+@keyframes vt-push-old{from{transform:none;filter:none}to{transform:translate3d(-28%,0,0);filter:brightness(.72)}}
+@keyframes vt-push-new{from{transform:translate3d(100%,0,0)}to{transform:none}}
+@keyframes vt-pop-old{from{transform:none}to{transform:translate3d(100%,0,0)}}
+@keyframes vt-pop-new{from{transform:translate3d(-28%,0,0);filter:brightness(.72)}to{transform:none;filter:none}}
+@keyframes vt-up-old{from{transform:none;filter:none}to{transform:scale(.94);filter:brightness(.7)}}
+@keyframes vt-up-new{from{transform:translate3d(0,100%,0)}to{transform:none}}
+@keyframes vt-down-old{from{transform:none}to{transform:translate3d(0,100%,0)}}
+@keyframes vt-down-new{from{transform:scale(.94);filter:brightness(.7)}to{transform:none;filter:none}}
+
 .screen-ghost{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
 .screen-ghost>#app{position:absolute;inset-inline:0;z-index:auto;animation-duration:460ms;animation-timing-function:var(--ease);animation-fill-mode:both}
 .screen-ghost *{pointer-events:none;animation:none!important}

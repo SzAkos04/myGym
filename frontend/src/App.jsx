@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
 import { bindUI } from './components/ui.jsx'
@@ -16,6 +16,7 @@ import { useWakeLock } from './lib/wakelock.js'
 import { installViewportGuard } from './lib/viewport-guard.js'
 import { motionDir, setMotion } from './lib/screen-motion.js'
 import ScreenGhost from './components/ScreenGhost.jsx'
+import ViewRouter from './components/ViewRouter.jsx'
 import { installChipDrag } from './lib/hchips.js'
 import { syncPushSubscription } from './lib/push.js'
 import { MOBILE } from './lib/mobile.js'
@@ -265,5 +266,5 @@ export default function App() {
     initBackButton().then(fn => { if (gone) fn(); else stop = fn })
     return () => { gone = true; stop?.() }
   }, [])
-  return <HashRouter><Shell /></HashRouter>
+  return <ViewRouter><Shell /></ViewRouter>
 }
