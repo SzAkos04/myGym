@@ -16,6 +16,7 @@ import { tappable } from '../lib/use-sheet-keyboard.js'
 import { glyphOf } from '../lib/glyphs.js'
 import { dayNoteOf } from '../lib/day-notes.js'
 import { weeklyWorkingSets, lastWorkoutSummary, todaySummary } from '../lib/home-stats.js'
+import { prsOf } from '../lib/pr-derive.js'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -105,7 +106,7 @@ export default function Home() {
   const setsMax = Math.max(1, ...sets.groups.map(g => g.sets))
   const lastW = lastWorkoutSummary(S.workouts)
   const sum = todaySummary(S.workouts, todayRoutines, todayISO())
-  const doneSum = doneToday ? lastWorkoutSummary([doneToday]) : null
+  const doneSum = doneToday ? { ...lastWorkoutSummary([doneToday]), prs: prsOf(S.workouts, doneToday).length } : null
   const bwPoints = S.bodyweight.slice(-30).map(b => ({ t: b.t || new Date(b.d).getTime(), y: b.w, d: b.d }))
 
   // today's session shown right under the week strip
@@ -163,7 +164,7 @@ export default function Home() {
         {doneToday && !S.active && doneSum && <div className="hero-stats">
           {doneSum.mins > 0 && <div><b>{t('{0} min', doneSum.mins)}</b><span>{t('Duration')}</span></div>}
           <div><b>{fmtNum(doneSum.volume)}</b><span>{S.unit} · {t('Volume')}</span></div>
-          <div><b className={doneSum.prs ? 'pr' : ''}>{doneSum.prs}</b><span>{t('Records')}</span></div>
+          <div><b className={doneSum.prs ? 'pr-num' : ''}>{doneSum.prs}</b><span>{t('Records')}</span></div>
         </div>}
       </div>
       {/* The row above starts today's plan in one tap, and so does the Start button in the tab

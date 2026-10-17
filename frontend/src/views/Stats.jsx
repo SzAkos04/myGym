@@ -648,7 +648,7 @@ export default function Stats() {
         <div className="hero-stats">
           <div><b>{sum.workouts}</b><span>{t('Workouts')}</span></div>
           <div><b>{sum.sets}</b><span>{t('Working sets')}</span></div>
-          <div><b className={sum.prs ? 'pr' : ''}>{sum.prs}</b><span>{t('Records')}</span></div>
+          <div><b className={sum.prs ? 'pr-num' : ''}>{sum.prs}</b><span>{t('Records')}</span></div>
         </div>
       </div>
     })()}

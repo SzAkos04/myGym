@@ -58,7 +58,8 @@ export function lastWorkoutSummary(workouts) {
   if (!last) return null
   const mins = last.end > last.start ? Math.round((last.end - last.start) / 60000) : 0
   const sets = (last.entries || []).reduce((n, e) => n + (e.sets || []).filter(s => s?.done && !isWarmupRow(s)).length, 0)
-  return { name: last.name || '', d: last.d, mins, volume: Math.round(Number(last.vol) || 0), prs: (last.prs || []).length, sets }
+  // Records the history earns count too (pr-derive), the same number Stats shows.
+  return { name: last.name || '', d: last.d, mins, volume: Math.round(Number(last.vol) || 0), prs: prsOf(workouts, last).length, sets }
 }
 
 const DAY = 86400000

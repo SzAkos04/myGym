@@ -1971,7 +1971,7 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .hero-stats>div{flex:1;min-width:0;padding:9px 10px;border-radius:14px;background:var(--surface-3)}
 .hero-stats b{display:block;font-size:17px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .hero-stats span{font-size:11px;color:var(--label-2)}
-.hero-stats b.pr{color:var(--yellow)}
+.hero-stats b.pr-num{color:var(--yellow)}
 .pr-text{color:var(--yellow);font-weight:600}
 .delta-up{color:var(--green);font-weight:600}
 
