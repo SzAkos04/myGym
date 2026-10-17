@@ -5,3 +5,15 @@ data
 .env
 .git
 *.log
+# Not needed to build either image: the catalogue sources (only catalogue/media goes into the web
+# image), the docs, the website, the Kubernetes files and the native app shells.
+catalogue/exercises
+catalogue/i18n
+catalogue/browse
+docs
+website
+kubernetes
+helm
+frontend/android
+frontend/ios
+mcp

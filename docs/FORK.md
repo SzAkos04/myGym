@@ -17,6 +17,10 @@ The fork is called **myGym**. `scripts/rebrand.sh` rewrites only the visible wor
 
 A build ships English, Hungarian and German only (`APP_LANGS=en,hu,de`, the default in `frontend/vite.config.js`). The other languages' files stay in the repo, so `git merge upstream` never conflicts over them; they are just built as empty modules, which takes the build from about 23 MB of JavaScript to about 7 MB (the service worker downloads all of it on every install and update). Build everything again with `APP_LANGS=all npm run build`, or pick your own list: `APP_LANGS=en,de,fr`.
 
+## Faster builds
+
+`docker compose up -d --build` is for deploying. While working on the frontend, skip the image build: `cd frontend && npm run build`, then once `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d web` (see `docker-compose.dev.yml`); after that each `npm run build` is live on the next page load, about 10 seconds. When only the web part changed, `docker compose up -d --build web` leaves the API image alone. The web image's layers are ordered so the 216 MB of exercise media stays cached between builds, and `.dockerignore` keeps the catalogue sources, docs and native shells out of the build context.
+
 ## Rules that keep merges painless
 
 1. **Fork identity lives in `frontend/src/lib/branding.js`.** Don't hardcode the repo or name elsewhere.

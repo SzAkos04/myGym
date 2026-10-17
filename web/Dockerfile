@@ -74,10 +74,15 @@ COPY web/nginx.conf.template /etc/nginx/templates/default.conf.template
 # of a server that 404s under the prefix. nginx's entrypoint runs these scripts in order; 05 is
 # before the template rendering at 20.
 COPY --chmod=755 web/05-check-base-path.sh /docker-entrypoint.d/
-COPY --from=build /app/frontend/dist /usr/share/nginx/html
+# The exercise media goes in BEFORE the app: it is 216 MB and almost never changes, while the app
+# changes on every build. In the other order every build re-copied (and re-exported) the media
+# because the layer above it was new, about 40 s of a 2 minute build.
 # The exercise stills and animations, 180 px, licensed from Gym visual for openGym only: see
 # catalogue/media/NOTICE.md. They ship inside the image; nothing is downloaded at start-up.
 COPY catalogue/media/ /usr/share/nginx/html/exercise-media/
+
+# The app, last: this is the layer that changes.
+COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
 # Set Default ENVs for nginx
 ENV NGINX_PORT=80
