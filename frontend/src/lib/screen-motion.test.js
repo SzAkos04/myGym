@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture } from './screen-motion.js'
+import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture, markGesture, takeGesture } from './screen-motion.js'
 
 describe('tabIndexOf', () => {
   it('puts the sub-screens under the tab the bar highlights for them', () => {
@@ -75,5 +75,14 @@ describe('isBrowserBackGesture', () => {
     expect(isBrowserBackGesture({ ...base, ios: false })).toBe(false)
     expect(isBrowserBackGesture({ ...base, standalone: false })).toBe(false)
     expect(isBrowserBackGesture({ ...base, action: 'PUSH' })).toBe(false)
+  })
+})
+
+describe('the back-gesture mark', () => {
+  it('is set once and taken once, so one change does not skip the next one\'s animation', () => {
+    expect(takeGesture()).toBe(false)
+    markGesture()
+    expect(takeGesture()).toBe(true)
+    expect(takeGesture()).toBe(false)
   })
 })

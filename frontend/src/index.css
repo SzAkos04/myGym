@@ -201,6 +201,7 @@ body.no-tabbar.resting #app{padding-bottom:calc(96px + var(--sab))}
      up     the workout rises from the bottom over everything; down: it sinks away again.
    The screen that was left is a copy (.screen-ghost). Opacity and transform only. */
 #app{position:relative;z-index:41;background:var(--bg);min-height:100vh;min-height:100dvh}
+#app.vfade[data-dir="gesture"]{animation:none}
 #app.vfade[data-dir="tab"]{animation:scr-fade-in 240ms ease-out both}
 #app.vfade[data-dir="push"]{animation:scr-push-in 460ms var(--ease) both}
 #app.vfade[data-dir="pop"]{animation:scr-pop-in 460ms var(--ease) both}

@@ -14,7 +14,7 @@ import { setSystemBarsLight } from './lib/system-bars.js'
 import { initBackButton } from './lib/back.js'
 import { useWakeLock } from './lib/wakelock.js'
 import { installViewportGuard } from './lib/viewport-guard.js'
-import { motionDir, setMotion } from './lib/screen-motion.js'
+import { motionDir, setMotion, takeGesture } from './lib/screen-motion.js'
 import ScreenGhost from './components/ScreenGhost.jsx'
 import ViewRouter from './components/ViewRouter.jsx'
 import { installChipDrag } from './lib/hchips.js'
@@ -78,7 +78,8 @@ function Shell() {
   // that only re-reads the same path keeps the direction, or the animation would be swapped mid-way.
   const motion = useRef({ path: null, dir: 'none', last: null })
   if (motion.current.path !== loc.pathname) {
-    motion.current = { path: loc.pathname, dir: motionDir(motion.current.last, loc.pathname, navType), last: loc.pathname }
+    // the browser's own back swipe has already animated this change: no second animation on top of it
+    motion.current = { path: loc.pathname, dir: takeGesture() ? 'gesture' : motionDir(motion.current.last, loc.pathname, navType), last: loc.pathname }
     setMotion(motion.current.dir)
   }
   // iOS: whether timer sounds get past the ring/silent switch (Settings → Sounds). Page-level,

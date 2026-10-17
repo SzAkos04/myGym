@@ -61,6 +61,13 @@ export function isBrowserBackGesture({ action, ios, standalone, sinceOwnMs }) {
   return action === 'POP' && !!ios && !!standalone && !(sinceOwnMs < 1000)
 }
 
+// Whether the screen change now starting is the browser's own back gesture (see isBrowserBackGesture):
+// ViewRouter marks it, the Shell takes the mark when it works out the direction, so the DOM animation
+// is skipped for it too.
+let gesture = false
+export const markGesture = () => { gesture = true }
+export const takeGesture = () => { const g = gesture; gesture = false; return g }
+
 // The direction of the screen change in flight, for the copy of the old screen that slides away
 // (components/ScreenGhost.jsx reads it as it unmounts, in the same commit that set it).
 let current = 'none'
