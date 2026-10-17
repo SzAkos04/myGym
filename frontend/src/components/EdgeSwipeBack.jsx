@@ -57,6 +57,9 @@ export default function EdgeSwipeBack() {
       const copy = snap.cloneNode(true)
       under.appendChild(copy)
       document.body.appendChild(under)
+      // The screen's own slide-in keeps its last frame (fill-mode both) and an animation outranks an inline
+      // style: without this the finger moved nothing and the screen was swapped at once at the end.
+      app.style.animation = 'none'
       app.style.willChange = 'transform'
       app.style.boxShadow = '-12px 0 30px rgba(0,0,0,.28)'
       g = { x0: t.clientX, last: t.clientX, lastT: performance.now(), vx: 0, dx: 0, app, under, copy }
