@@ -17,14 +17,25 @@ export function tabIndexOf(pathname) {
   return tab ? TAB_ORDER.indexOf(tab) : null
 }
 
+const TAB_ROOTS = new Set(['home', 'plan', 'stats', 'library'])
+
+/** How deep a screen is: 0 for a tab's own screen, then one more per level (/settings 1, /settings/sounds 2). */
+export function depthOf(pathname) {
+  const segs = String(pathname || '').split('/').filter(Boolean)
+  if (segs.length === 0 || (segs.length === 1 && TAB_ROOTS.has(segs[0]))) return 0
+  return segs.length
+}
+
 /**
  * How a screen change should look, the way iOS does it:
  *   'tab'  between two bottom tabs: a quick cross-fade, no sideways slide (a tab bar never slides);
  *   'push' deeper into a screen: the new one slides in from the right over the old, which drifts left;
- *   'pop'  back out: the leaving screen slides off to the right, the one beneath comes back;
+ *   'pop'  back out to a shallower one: the leaving screen slides off to the right;
  *   'up' / 'down' the workout, which rises over everything like a modal and sinks away again;
  *   'none' on the first screen or when nothing changes.
- * `navType` is react-router's: PUSH, POP, REPLACE.
+ * Deeper or shallower is judged by the screens, not by how the browser got there: the "Home" button on
+ * Settings is a plain navigation to /home (a PUSH to react-router), and it still has to pop.
+ * `navType` only breaks a tie between two screens of the same depth.
  */
 export function motionDir(prev, next, navType) {
   if (!prev || prev === next) return 'none'
@@ -33,6 +44,9 @@ export function motionDir(prev, next, navType) {
   if (full(prev)) return 'down'
   const a = tabIndexOf(prev), b = tabIndexOf(next)
   if (a != null && b != null && a !== b) return 'tab'
+  const da = depthOf(prev), db = depthOf(next)
+  if (db > da) return 'push'
+  if (db < da) return 'pop'
   return navType === 'POP' ? 'pop' : 'push'
 }
 

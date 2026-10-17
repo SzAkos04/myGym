@@ -241,8 +241,8 @@ export default function Home() {
               slivers, so the track becomes one bar of the same proportion. */}
           {setsMax <= 20
             ? <div className="blocks" aria-hidden="true">{Array.from({ length: setsMax }, (_, i) =>
-              <i key={i} className={i < g.sets ? 'on' : ''} style={i < g.sets ? { animationDelay: (gi * 60 + i * 25) + 'ms' } : undefined} />)}</div>
-            : <div className="blocks bar" aria-hidden="true"><i className="on" style={{ width: (g.sets / setsMax * 100) + '%', animationDelay: (gi * 60) + 'ms' }} /></div>}
+              <i key={i} className={i < g.sets ? 'on' : ''} style={i < g.sets ? { animationDelay: Math.min(180, gi * 24 + i * 10) + 'ms' } : undefined} />)}</div>
+            : <div className="blocks bar" aria-hidden="true"><i className="on" style={{ width: (g.sets / setsMax * 100) + '%', animationDelay: Math.min(180, gi * 24) + 'ms' }} /></div>}
           <b>{g.sets}</b>
         </div>)}
       </div>

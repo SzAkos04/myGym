@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tabIndexOf, motionDir } from './screen-motion.js'
+import { tabIndexOf, motionDir, depthOf } from './screen-motion.js'
 
 describe('tabIndexOf', () => {
   it('puts the sub-screens under the tab the bar highlights for them', () => {
@@ -15,6 +15,18 @@ describe('tabIndexOf', () => {
     expect(tabIndexOf('/workout')).toBeNull()
     expect(tabIndexOf('/coach/setup')).toBeNull()
     expect(tabIndexOf('/admin')).toBeNull()
+  })
+})
+
+describe('depthOf', () => {
+  it('is 0 for a tab\'s own screen and one more per level', () => {
+    expect(depthOf('/home')).toBe(0)
+    expect(depthOf('/')).toBe(0)
+    expect(depthOf('/stats')).toBe(0)
+    expect(depthOf('/settings')).toBe(1)
+    expect(depthOf('/settings/sounds')).toBe(2)
+    expect(depthOf('/history')).toBe(1)
+    expect(depthOf('/plan/r/abc')).toBe(3)
   })
 })
 
@@ -35,6 +47,14 @@ describe('motionDir', () => {
     expect(motionDir('/home', '/workout', 'PUSH')).toBe('up')
     expect(motionDir('/workout', '/home', 'PUSH')).toBe('down')
     expect(motionDir('/workout', '/stats', 'POP')).toBe('down')
+  })
+  it('pops when a plain navigation goes up a level, like the Home button on Settings', () => {
+    expect(motionDir('/settings', '/home', 'PUSH')).toBe('pop')
+    expect(motionDir('/settings/sounds', '/settings', 'PUSH')).toBe('pop')
+    expect(motionDir('/history', '/stats', 'PUSH')).toBe('pop')
+    expect(motionDir('/plan/r/abc', '/plan', 'PUSH')).toBe('pop')
+    expect(motionDir('/settings/sounds', '/home', 'PUSH')).toBe('pop')
+    expect(motionDir('/home', '/settings/sounds', 'PUSH')).toBe('push')
   })
   it('does nothing on the first screen or for the same one', () => {
     expect(motionDir(null, '/home', 'POP')).toBe('none')

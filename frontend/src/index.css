@@ -2086,7 +2086,7 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .wset .blocks{display:flex;gap:3px;min-width:0}
 /* empty slots are only a ghost of the track; filled ones grow in, left to right */
 .wset .blocks i{flex:1 1 0;min-width:0;height:16px;border-radius:5px;background:var(--surface-3);opacity:.55}
-.wset .blocks i.on{background:var(--acc);opacity:1;transform-origin:left center;animation:blockin .42s var(--ease) both}
+.wset .blocks i.on{background:var(--acc);opacity:1;transform-origin:left center;animation:blockin .32s var(--ease) both}
 .wset .blocks.bar{height:16px;border-radius:5px;background:var(--surface-3)}
 .wset .blocks.bar i{flex:none;height:16px;opacity:1}
 @keyframes blockin{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
