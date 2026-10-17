@@ -19,7 +19,7 @@ A build ships English, Hungarian and German only (`APP_LANGS=en,hu,de`, the defa
 
 ## Faster builds
 
-`docker compose up -d --build` is for deploying. While working on the frontend, skip the image build: `cd frontend && npm run build`, then once `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d web` (see `docker-compose.dev.yml`); after that each `npm run build` is live on the next page load, about 10 seconds. When only the web part changed, `docker compose up -d --build web` leaves the API image alone. The web image's layers are ordered so the 216 MB of exercise media stays cached between builds, and `.dockerignore` keeps the catalogue sources, docs and native shells out of the build context.
+`docker compose up -d --build` is for deploying. While working on the frontend, skip the image build: `sh scripts/dev-deploy.sh` builds the frontend here (about 10 seconds) and copies it into the running web container, no restart. When only the web part changed, `docker compose up -d --build web` leaves the API image alone. The web image's layers are ordered so the 216 MB of exercise media stays cached between builds, and `.dockerignore` keeps the catalogue sources, docs and native shells out of the build context.
 
 ## Rules that keep merges painless
 
