@@ -240,9 +240,9 @@ export default function Home() {
               whole track and the others fill their share of it. Past 20 the blocks would be
               slivers, so the track becomes one bar of the same proportion. */}
           {setsMax <= 20
-            ? <div className="blocks" aria-hidden="true">{Array.from({ length: setsMax }, (_, i) =>
-              <i key={i} className={i < g.sets ? 'on' : ''} style={i < g.sets ? { animationDelay: Math.min(180, gi * 24 + i * 10) + 'ms' } : undefined} />)}</div>
-            : <div className="blocks bar" aria-hidden="true"><i className="on" style={{ width: (g.sets / setsMax * 100) + '%', animationDelay: Math.min(180, gi * 24) + 'ms' }} /></div>}
+            ? <div className="blocks" aria-hidden="true" style={{ animationDelay: gi * 45 + 'ms' }}>{Array.from({ length: setsMax }, (_, i) =>
+              <i key={i} className={i < g.sets ? 'on' : ''} />)}</div>
+            : <div className="blocks bar" aria-hidden="true" style={{ animationDelay: gi * 45 + 'ms' }}><i className="on" style={{ width: (g.sets / setsMax * 100) + '%' }} /></div>}
           <b>{g.sets}</b>
         </div>)}
       </div>
