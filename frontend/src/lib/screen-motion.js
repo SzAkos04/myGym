@@ -81,3 +81,18 @@ export const takeGesture = () => { const g = gesture; gesture = false; return g 
 let current = 'none'
 export const setMotion = d => { current = d }
 export const getMotion = () => current
+
+/**
+ * Runs `fn` once the screen has arrived: while #app still slides in (data-dir push / up …) every position
+ * read off it includes the slide, and a scrollIntoView made then scrolls the page by the whole offset.
+ * Starting a workout did exactly that: the list scrolled half a screen down while the session rose, the
+ * pinned header was left in the middle with rows above it, and Home showed through underneath.
+ * Runs at once when nothing is moving. Returns a cancel.
+ */
+export function afterScreenSettles(fn, app = typeof document !== 'undefined' ? document.getElementById('app') : null) {
+  const moving = (app?.getAnimations?.() || []).filter(a => a.playState === 'running' || a.playState === 'pending')
+  if (!moving.length) { fn(); return () => {} }
+  let live = true
+  Promise.all(moving.map(a => a.finished.catch(() => {}))).then(() => { if (live) fn() })
+  return () => { live = false }
+}

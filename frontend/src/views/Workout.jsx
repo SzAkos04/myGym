@@ -29,6 +29,7 @@ import { durationSheet } from '../components/DurationWheel.jsx'
 import { REST_MAX, fmtRest } from '../lib/duration.js'
 import { startFlow, exercisePicker, exConfigSheet, exerciseDetailSheet, finishWorkout, exitWorkoutEdit, workoutCompleteSheet, confirmSheet, exerciseNoteSheet, sessionNoteSheet, renameWorkoutSheet, swapActiveWorkoutExercise, barWeightSheet, menuSheet, effortPickerSheet, exerciseHistorySheet, addRoutineToSessionSheet, finishWorkoutSheet } from '../sheets.jsx'
 import { afterScrollRestore, scrollRestorePending } from '../components/Modals.jsx'
+import { afterScreenSettles } from '../lib/screen-motion.js'
 import { effortColor } from '../lib/effort.js'
 import Elapsed from '../components/Elapsed.jsx'
 import Icon from '../components/Icon.jsx'
@@ -1090,7 +1091,8 @@ function ActiveWorkout() {
     // (components/Modals.jsx). A scroll asked for in this same commit was undone a few ms later,
     // every time, and the partner's row stayed below the fold. With no sheet closing in the last
     // third of a second, afterScrollRestore runs this at once, as the tick always did.
-    return afterScrollRestore(() => {
+    let settle = () => {}
+    const stop = afterScrollRestore(() => { settle = afterScreenSettles(() => {
       const { entries, cur: at } = shown.current
       const entry = entries[at]
       const firstIncomplete = entry?.sets.findIndex(s => !s.done) ?? -1
@@ -1099,7 +1101,8 @@ function ActiveWorkout() {
       if (!el || typeof el.scrollIntoView !== 'function') return
       if (!moved && rowOnScreen(el)) return
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
+    }) })
+    return () => { stop(); settle() }
   }, [cur, isSuperset, listMode, A.entries.length])
   // The list opens at the exercise you are on, not at the top of the session (issue #224): you
   // switch to it mid-workout to look at what comes before and after. Only on the way in — once
@@ -1123,8 +1126,10 @@ function ActiveWorkout() {
       ? window.cancelAnimationFrame(frame)
       : window.clearTimeout(frame)
     // scrollToUnit (below) clears the sticky header at whatever height it has right now.
-    const frame = schedule(() => scrollToUnit(listRef.current?.querySelector('.wl-unit.cur')))
-    return () => cancel(frame)
+    // ...and after the screen has risen: measured mid-rise, the scroll went the whole slide too far.
+    let settle = () => {}
+    const frame = schedule(() => { settle = afterScreenSettles(() => scrollToUnit(listRef.current?.querySelector('.wl-unit.cur'))) })
+    return () => { cancel(frame); settle() }
   }, [workoutView])
 
   const total = setUnitsTotal(A.entries)

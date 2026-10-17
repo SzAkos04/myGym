@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture, markGesture, takeGesture, isTabSwitch } from './screen-motion.js'
+import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture, markGesture, takeGesture, isTabSwitch, afterScreenSettles } from './screen-motion.js'
 
 describe('tabIndexOf', () => {
   it('puts the sub-screens under the tab the bar highlights for them', () => {
@@ -98,5 +98,38 @@ describe('isTabSwitch', () => {
     expect(isTabSwitch('/history', '/stats/')).toBe(false)
     expect(isTabSwitch('/home', '/home')).toBe(false)
     expect(isTabSwitch(null, '/home')).toBe(false)
+  })
+})
+
+describe('afterScreenSettles', () => {
+  const sliding = () => {
+    let end
+    const finished = new Promise(r => { end = r })
+    return { app: { getAnimations: () => [{ playState: 'running', finished }] }, end }
+  }
+
+  it('runs at once when the screen is still', () => {
+    let ran = 0
+    afterScreenSettles(() => { ran++ }, { getAnimations: () => [{ playState: 'finished', finished: Promise.resolve() }] })
+    afterScreenSettles(() => { ran++ }, null)
+    expect(ran).toBe(2)
+  })
+
+  it('waits for the slide-in to end before it runs (a scroll measured mid-slide goes the whole offset too far)', async () => {
+    const { app, end } = sliding()
+    let ran = 0
+    afterScreenSettles(() => { ran++ }, app)
+    await Promise.resolve()
+    expect(ran).toBe(0)
+    end(); await new Promise(r => setTimeout(r, 0))
+    expect(ran).toBe(1)
+  })
+
+  it('does not run once cancelled (the screen left before it arrived)', async () => {
+    const { app, end } = sliding()
+    let ran = 0
+    const cancel = afterScreenSettles(() => { ran++ }, app)
+    cancel(); end(); await new Promise(r => setTimeout(r, 0))
+    expect(ran).toBe(0)
   })
 })
