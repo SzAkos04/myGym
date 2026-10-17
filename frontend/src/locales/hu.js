@@ -2281,4 +2281,8 @@ export default {
   'last done {0} day ago': 'utoljára {0} napja',
   'last done {0} days ago': 'utoljára {0} napja',
   'This round': 'Ez a kör',
+  'Last 30 days': 'Utolsó 30 nap',
+  'Last 3 months': 'Utolsó 3 hónap',
+  'Last year': 'Utolsó év',
+  'Working sets': 'Munkaszettek',
 }

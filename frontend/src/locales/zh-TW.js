@@ -2271,4 +2271,8 @@ export default {
   'last done {0} day ago': 'last done {0} day ago',
   'last done {0} days ago': 'last done {0} days ago',
   'This round': 'This round',
+  'Last 30 days': 'Last 30 days',
+  'Last 3 months': 'Last 3 months',
+  'Last year': 'Last year',
+  'Working sets': 'Working sets',
 }

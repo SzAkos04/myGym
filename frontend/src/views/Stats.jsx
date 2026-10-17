@@ -25,6 +25,7 @@ import {
 } from '../lib/effort.js'
 import { anchorsByWorkout, resolveSetRir } from '../lib/recovery.js'
 import { Button, Segmented, SelectRow } from '../components/ui.jsx'
+import { periodSummary } from '../lib/home-stats.js'
 import { tappable } from '../lib/use-sheet-keyboard.js'
 import { isWarmupRow } from '../lib/workout-model.js'
 
@@ -408,6 +409,7 @@ export default function Stats() {
   const nav = useNavigate()
   const S = useStore(s => s.S)
   const [range, setRange] = useState(90)
+  const [sumDays, setSumDays] = useState(30)
   // Plan's "Weekly muscle volume" row lands here (/stats?focus=weekly-volume). The router is a
   // HashRouter, so the query sits in the hash; the scroll waits a frame for the page's own
   // scroll-to-top on navigation to have happened first.
@@ -635,6 +637,21 @@ export default function Stats() {
   return <>
     <div className="hdr"><div><h1>{t('Stats')}</h1><div className="sub">{t('Progress & history')}</div></div>
       <button className="iconbtn" onClick={() => nav('/history')} aria-label={t('History')}><Icon name="history" /></button></div>
+
+    {/* The summary first: what the last month, three months or year added up to. */}
+    {(() => {
+      const to = todayISO(), fromD = new Date(); fromD.setDate(fromD.getDate() - sumDays + 1)
+      const sum = periodSummary(S.workouts, isoOf(fromD), to)
+      return <div className="card stats-hero">
+        <div className="row between"><span className="plan-kick">{sumDays === 30 ? t('Last 30 days') : sumDays === 90 ? t('Last 3 months') : t('Last year')}</span>
+          <Segmented className="seg-range seg-mini" value={sumDays} onChange={setSumDays} options={[{ value: 30, label: '1M' }, { value: 90, label: '3M' }, { value: 365, label: '1Y' }]} /></div>
+        <div className="hero-stats">
+          <div><b>{sum.workouts}</b><span>{t('Workouts')}</span></div>
+          <div><b>{sum.sets}</b><span>{t('Working sets')}</span></div>
+          <div><b className={sum.prs ? 'pr' : ''}>{sum.prs}</b><span>{t('Records')}</span></div>
+        </div>
+      </div>
+    })()}
 
     <div className="tiles">
       <div className="tile"><div className="l"><Icon name="dumbbell" />{t('Workouts')}</div><div className="v">{workouts.length}</div></div>

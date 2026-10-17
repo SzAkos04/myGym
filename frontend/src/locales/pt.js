@@ -2278,4 +2278,8 @@ export default {
   'last done {0} day ago': 'último há {0} dia',
   'last done {0} days ago': 'último há {0} dias',
   'This round': 'Esta ronda',
+  'Last 30 days': 'Últimos 30 dias',
+  'Last 3 months': 'Últimos 3 meses',
+  'Last year': 'Último ano',
+  'Working sets': 'Séries de trabalho',
 }
