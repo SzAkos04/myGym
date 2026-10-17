@@ -30,6 +30,9 @@ A build ships English, Hungarian and German only (`APP_LANGS=en,hu,de`, the defa
 
 ## Sync routine
 
+`sh scripts/sync-upstream.sh` does the steps below for you (`--dry-run` only lists what is new, `--push` also pushes). It stops when there is a conflict and tells you which files.
+
+
 ```bash
 git fetch upstream
 git checkout main && git merge --ff-only upstream/main   # mirror, never diverges
