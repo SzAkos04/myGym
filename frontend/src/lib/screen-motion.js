@@ -50,6 +50,17 @@ export function motionDir(prev, next, navType) {
   return navType === 'POP' ? 'pop' : 'push'
 }
 
+/**
+ * Whether a history step was the browser's own back gesture rather than the app's. The installed iOS
+ * app has no back button, only the swipe from the left edge, and iOS animates that itself (the page
+ * follows the finger and the previous screen slides in) before it tells the page; animating the change
+ * again then plays the whole thing a second time. Only a POP in the installed iOS app that the app did
+ * not start itself (`sinceOwnMs`: how long since it called history.go; Infinity for never) counts.
+ */
+export function isBrowserBackGesture({ action, ios, standalone, sinceOwnMs }) {
+  return action === 'POP' && !!ios && !!standalone && !(sinceOwnMs < 1000)
+}
+
 // The direction of the screen change in flight, for the copy of the old screen that slides away
 // (components/ScreenGhost.jsx reads it as it unmounts, in the same commit that set it).
 let current = 'none'

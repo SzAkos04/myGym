@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Router, UNSAFE_createHashHistory as createHashHistory } from 'react-router-dom'
-import { motionDir } from '../lib/screen-motion.js'
+import { motionDir, isBrowserBackGesture } from '../lib/screen-motion.js'
 
 // A hash router whose screen changes run inside a View Transition (document.startViewTransition),
 // so the browser snapshots the old screen and the new one and animates between the two on the GPU,
@@ -13,12 +13,24 @@ import { motionDir } from '../lib/screen-motion.js'
 const canTransition = () => typeof document !== 'undefined' && typeof document.startViewTransition === 'function'
   && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
+const IOS = typeof navigator !== 'undefined'
+  && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+const standalone = () => !!(window.navigator.standalone || window.matchMedia?.('(display-mode: standalone)').matches)
+
 export default function ViewRouter({ children }) {
   const historyRef = useRef(null)
-  if (historyRef.current == null) historyRef.current = createHashHistory({ v5Compat: true })
+  if (historyRef.current == null) {
+    const h = createHashHistory({ v5Compat: true })
+    // Remember when the app itself steps back (navigate(-1) calls this): a pop that arrives without
+    // one is the browser's back gesture, which iOS has already animated.
+    const go = h.go.bind(h)
+    h.go = n => { ownPopAt.current = Date.now(); go(n) }
+    historyRef.current = h
+  }
   const history = historyRef.current
   const [state, setState] = useState({ action: history.action, location: history.location })
   const last = useRef(history.location.pathname)
+  const ownPopAt = useRef(0)
 
   useEffect(() => {
     if (canTransition()) document.documentElement.dataset.vtOk = '1'
@@ -30,7 +42,10 @@ export default function ViewRouter({ children }) {
     last.current = update.location.pathname
     // A redirect (REPLACE) is not a screen the user went to; a change of query only is not a new screen.
     const dir = update.action === 'REPLACE' ? 'none' : motionDir(prev, update.location.pathname, update.action)
-    if (dir === 'none' || !canTransition()) { setState(update); return }
+    const gesture = isBrowserBackGesture({
+      action: update.action, ios: IOS, standalone: standalone(), sinceOwnMs: ownPopAt.current ? Date.now() - ownPopAt.current : Infinity,
+    })
+    if (dir === 'none' || gesture || !canTransition()) { setState(update); return }
     const root = document.documentElement
     root.dataset.vt = dir
     const t = document.startViewTransition(() => { flushSync(() => setState(update)) })
