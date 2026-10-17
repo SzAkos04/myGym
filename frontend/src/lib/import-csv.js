@@ -223,6 +223,8 @@ const ALIAS_EX = {
   'chest supported reverse fly (dumbbell)': '0383',
   'bench press (smith machine)': '0748', 'overhead press (smith machine)': '0766',
   'hack squat (machine)': '0743', 'iso-lateral row (machine)': '0571',
+  // A plate-loaded or stack machine press with two independent arms: the catalogue's lever chest press.
+  'iso-lateral chest press (machine)': '0576', 'iso-lateral chest press': '0576',
   'seated cable row - bar grip': '0218', 'reverse grip lat pulldown (cable)': '0673',
   'single arm lateral raise (cable)': '0192', 'plate front raise': '0310',
   'back extension (weighted hyperextension)': '0573',

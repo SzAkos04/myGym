@@ -54,6 +54,18 @@ describe('a Strong export', () => {
   })
 })
 
+describe('a Strong machine press', () => {
+  const csv = [
+    'Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE',
+    '2026-04-02 18:05:00,"Upper",40m,"Iso-Lateral Chest Press (Machine)",1,20,10,0,0,"","",',
+  ].join('\n')
+  it('lands on the catalogue\'s lever chest press, not on a custom exercise of its own', () => {
+    const p = parseWorkoutCSV(csv, { unit: 'kg' })
+    expect(p.workouts[0].entries[0].id).toBe('0576')
+    expect(p.unmatchedNames || []).toEqual([])
+  })
+})
+
 describe('a Hevy export with a superset', () => {
   it('puts the exercises sharing a superset_id in one superset, and reads the description as the note', () => {
     const [w] = parseWorkoutCSV(HEVY, { unit: 'kg' }).workouts
