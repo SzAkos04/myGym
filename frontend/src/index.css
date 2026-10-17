@@ -217,6 +217,13 @@ body.no-tabbar.resting #app{padding-bottom:calc(96px + var(--sab))}
   content:'';position:absolute;inset:0;background:#000;pointer-events:none;z-index:5;animation:scr-dim-out 460ms var(--ease) both}
 @keyframes scr-dim-out{from{opacity:.24}to{opacity:0}}
 
+/* A screen that arrives with a slide or a fade of its own does not also fade its cards in or sweep its bars
+   again once it has landed: that read as the screen being drawn twice. Only the very first screen
+   (data-dir="none") keeps them. */
+#app.vfade:not([data-dir="none"]) .narrow>.card,
+#app.vfade:not([data-dir="none"]) .narrow>.hdr,
+#app.vfade:not([data-dir="none"]) .wset .blocks{animation:none}
+
 /* ---- View Transitions (components/ViewRouter.jsx): the browser snapshots the old and the new screen and
    animates them on the GPU, like an iOS app's navigation. html[data-vt] says which kind:
      tab    a soft cross-fade with a hint of depth; the tab bar stays where it is (it has its own name);
