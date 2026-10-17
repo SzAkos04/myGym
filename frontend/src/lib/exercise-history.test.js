@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { exerciseHistory, HISTORY_SESSIONS, bestSetFor } from './exercise-history.js'
+import { exerciseHistory, HISTORY_SESSIONS, AROUND_BEFORE, bestSetFor } from './exercise-history.js'
 import { EXDB } from './exercises-data.js'
 import { estimate1RM, e1rmSeries } from './onerm.js'
 import { lastEntryFor } from './history.js'
@@ -226,5 +226,41 @@ describe('bestSetFor', () => {
     expect(bestSetFor(S, id, 'reps').set).toMatchObject({ w: 20, r: 8 })
     expect(bestSetFor({ workouts: [] }, 'bench', 'reps')).toBeNull()
     expect(bestSetFor({}, 'bench')).toBeNull()
+  })
+})
+
+describe('exerciseHistory seen from one session', () => {
+  // 14 bench sessions, 60 kg and up by 2.5 each time
+  const S = { workouts: Array.from({ length: 14 }, (_, i) => session(i, [work(60 + i * 2.5, 5)])) }
+
+  it('windows the list around the session: five before it, the rest after, and flags it', () => {
+    const h = exerciseHistory(S, 'bench', { around: 'w7' })
+    expect(h.sessions).toHaveLength(HISTORY_SESSIONS)
+    expect(h.sessions.map(s => s.id)).toEqual(['w11', 'w10', 'w9', 'w8', 'w7', 'w6', 'w5', 'w4', 'w3', 'w2'])   // newest first
+    expect(h.sessions.filter(s => s.focus).map(s => s.id)).toEqual(['w7'])
+    expect(AROUND_BEFORE).toBe(5)
+  })
+
+  it('shifts the window at either end so it stays full', () => {
+    expect(exerciseHistory(S, 'bench', { around: 'w0' }).sessions.map(s => s.id)[0]).toBe('w9')
+    expect(exerciseHistory(S, 'bench', { around: 'w0' }).sessions.at(-1).id).toBe('w0')
+    expect(exerciseHistory(S, 'bench', { around: 'w13' }).sessions[0].id).toBe('w13')
+    expect(exerciseHistory(S, 'bench', { around: 'w13' }).sessions).toHaveLength(HISTORY_SESSIONS)
+  })
+
+  it('describes the session: its numbers, whether it set the record, and the change from the one before', () => {
+    const f = exerciseHistory(S, 'bench', { around: 'w5' }).focus
+    expect(f).toMatchObject({ id: 'w5', value: 72.5, pr: false })
+    expect(f.prev).toMatchObject({ value: 70 })
+    expect(f.delta).toEqual({ value: 2.5, e1rm: expect.any(Number), volume: 12.5 })
+    expect(exerciseHistory(S, 'bench', { around: 'w13' }).focus.pr).toBe(true)
+  })
+
+  it('has no delta for the first session and falls back to the latest sessions for an unknown one', () => {
+    expect(exerciseHistory(S, 'bench', { around: 'w0' }).focus).toMatchObject({ prev: null, delta: null })
+    const h = exerciseHistory(S, 'bench', { around: 'nope' })
+    expect(h.focus).toBeNull()
+    expect(h.sessions[0].id).toBe('w13')
+    expect(h.sessions.some(s => s.focus)).toBe(false)
   })
 })

@@ -2293,4 +2293,8 @@ export default {
   'Last 3 months': 'Last 3 months',
   'Last year': 'Last year',
   'Working sets': 'Working sets',
+  'Around this session': 'Around this session',
+  'Latest sessions': 'Latest sessions',
+  'Change since {0}': 'Change since {0}',
+  'The first time you logged this exercise.': 'The first time you logged this exercise.',
 }

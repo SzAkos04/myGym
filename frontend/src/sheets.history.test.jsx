@@ -88,4 +88,32 @@ describe('exercise history sheet', () => {
     const top = renderTop()
     expect(top.querySelectorAll('.list .item')).toHaveLength(1)
   })
+
+  describe('opened from a past workout', () => {
+    const logs = () => useStore.setState(s => ({ S: { ...s.S, workouts: Array.from({ length: 14 }, (_, i) => session(i, [{ w: 60 + i * 2.5, r: 5, done: true }])) } }))
+
+    it('starts on that session: a This session card, the list around it, that row marked', () => {
+      logs()
+      exerciseHistorySheet(EX, 'w7')
+      const host = renderTop()
+      expect(host.querySelector('.hist-focus').textContent).toContain('This session')
+      expect(host.querySelector('.hist-focus').textContent).toContain('+2.5')      // since the session before it
+      expect(host.querySelectorAll('.hist-focus-row')).toHaveLength(1)
+      expect(host.textContent).toContain('Around this session')
+      expect(host.querySelectorAll('.list .item')).toHaveLength(10)
+    })
+
+    it('goes back to the latest sessions with one tap, and the plain sheet has no such card', () => {
+      logs()
+      exerciseHistorySheet(EX, 'w7')
+      const host = renderTop()
+      const btn = [...host.querySelectorAll('button')].find(b => b.textContent.includes('Latest sessions'))
+      act(() => btn.click())
+      expect(host.querySelector('.hist-focus')).toBeNull()
+      expect(host.textContent).not.toContain('Around this session')
+      exerciseHistorySheet(EX)
+      const plain = renderTop()
+      expect(plain.querySelector('.hist-focus')).toBeNull()
+    })
+  })
 })

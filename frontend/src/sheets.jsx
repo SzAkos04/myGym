@@ -1047,10 +1047,12 @@ export const exerciseDetailSheet = ex => ui().openSheet(close => <ExerciseDetail
 // without leaving the workout for Stats. Derived once per log change — the sheet re-renders on
 // every store tick while a session runs, and LineChart drops its hover whenever `points`
 // changes identity, so a series rebuilt per render would lose the tooltip under your finger.
-function ExerciseHistory({ exId }) {
+function ExerciseHistory({ exId, workoutId = null }) {
   const st = useStore(s => s.S)
   const ex = exOr(exId)
-  const h = useMemo(() => exerciseHistory(st, exId), [st.workouts, exId])
+  // Opened from a past workout, the sheet starts on that session; "Latest sessions" goes back to the plain history.
+  const [around, setAround] = useState(workoutId)
+  const h = useMemo(() => exerciseHistory(st, exId, { around }), [st.workouts, exId, around])
   const bal = useMemo(() => sideBalance(st.workouts, exId), [st.workouts, exId])
   const [curve, setCurve] = useState('top')
   const onE1 = curve === 'e1rm' && h.e1rmPoints.length > 0
@@ -1067,6 +1069,23 @@ function ExerciseHistory({ exId }) {
   return <>
     <h3 className={exerciseNameClass(ex)} style={{ marginBottom: 2 }}>{exerciseNameFor(ex)}</h3>
     <div className="muted small" style={{ marginBottom: 10 }}>{t('Exercise history')} · {tn('{0} session', '{0} sessions', h.total)}</div>
+    {h.focus && <div className="card hist-focus">
+      <div className="row between"><span className="plan-kick">{t('This session')} · {fmtDate(h.focus.d, true)}</span>
+        {h.focus.pr && <span className="pr"><Icon name="trophy" />PR</span>}</div>
+      <div className="ss" style={{ marginTop: 6 }}>{h.focus.sets.map(x => setLabel(exId, x, h.focus.target, speedUnitOf(st))).join('  ·  ')}</div>
+      <div className="hero-stats">
+        {[
+          [h.metric === 'weight' ? t('Top set') : h.metric === 'reps' ? t('Reps') : h.metric === 'sec' ? t('Time') : t('Minutes'), h.focus.value, h.focus.delta?.value, unit],
+          h.focus.e1rm != null && [t('Est. 1RM'), h.focus.e1rm, h.focus.delta?.e1rm, st.unit],
+          h.focus.volume > 0 && [t('Volume'), h.focus.volume, h.focus.delta?.volume, st.unit],
+        ].filter(Boolean).map(([label, v, d, u]) => <div key={label}>
+          <b>{v != null ? fmtNum(v) : '–'}</b>
+          <span>{label}{u ? ' · ' + u : ''}</span>
+          {d != null && d !== 0 && <em className={d > 0 ? 'delta-up' : 'dim'}>{d > 0 ? '+' : '−'}{fmtNum(Math.abs(d))}</em>}
+        </div>)}
+      </div>
+      <div className="small dim" style={{ marginTop: 8 }}>{h.focus.prev ? t('Change since {0}', fmtDate(h.focus.prev.d, true)) : t('The first time you logged this exercise.')}</div>
+    </div>}
     {/* Only reps work with a load produces an estimate, so the toggle is absent for the rest. */}
     {h.e1rmPoints.length > 0 && h.metric === 'weight' && <Segmented className="seg-range" value={curve} onChange={setCurve}
       options={[{ value: 'top', label: t('Top set') }, { value: 'e1rm', label: t('Est. 1RM') }]} />}
@@ -1083,20 +1102,22 @@ function ExerciseHistory({ exId }) {
         ? t('Weaker side: {0} · {1} reps fewer per set (last {2} sessions)', bal.weakSide === 'L' ? t('Left') : t('Right'), fmtNum(bal.repsDiff), bal.sessions)
         : t('Sides are level over the last {0} sessions', bal.sessions)}
     </div>}
-    <h4 className="sec">{h.sessions.length < h.total ? t('Last {0} sessions', h.sessions.length) : t('Sessions')}</h4>
+    <h4 className="sec">{h.focus ? t('Around this session') : h.sessions.length < h.total ? t('Last {0} sessions', h.sessions.length) : t('Sessions')}</h4>
     <div className="list">
-      {h.sessions.map(s => <div key={s.id} className="item" style={{ alignItems: 'flex-start' }}>
+      {h.sessions.map(s => <div key={s.id} className={'item' + (s.focus ? ' hist-focus-row' : '')} style={{ alignItems: 'flex-start' }}>
         <div className="grow">
-          <div className="tt">{fmtDate(s.d, true)} {s.pr && <span className="pr"><Icon name="trophy" />PR</span>}</div>
+          <div className="tt">{fmtDate(s.d, true)} {s.focus && <span className="tag acc">{t('This session')}</span>} {s.pr && <span className="pr"><Icon name="trophy" />PR</span>}</div>
           <div className="ss">{s.sets.map(x => setLabel(exId, x, s.target, speedUnitOf(st))).join('  ·  ')}</div>
           {tail(s) && <div className="small dim" style={{ marginTop: 3 }}>{tail(s)}</div>}
         </div>
         {s.value != null && s.value > 0 && <b className="accent nocap" style={{ whiteSpace: 'nowrap' }}>{fmtNum(s.value)} {unit}</b>}
       </div>)}
     </div>
+    {around && <Button variant="ghost" icon="history" style={{ marginTop: 10 }} onClick={() => setAround(null)}>{t('Latest sessions')}</Button>}
   </>
 }
-export const exerciseHistorySheet = exId => ui().openSheet(close => <ExerciseHistory exId={exId} close={close} />)
+// With a workout id the sheet opens on that session (a past workout's detail passes its own).
+export const exerciseHistorySheet = (exId, workoutId = null) => ui().openSheet(close => <ExerciseHistory exId={exId} workoutId={workoutId} close={close} />)
 
 /* ============================ add to routine ============================ */
 function AddToRoutine({ ex, close }) {
@@ -2548,7 +2569,7 @@ function WorkoutDetail({ w, close }) {
   // curve it sits on, which is the question a past workout raises most often.
   const entryRow = (e, i) => {
     const ex = EXIDX[e.id]
-    return <div key={i} className="row wd-ex" style={{ alignItems: 'flex-start' }} {...tappable(() => exerciseHistorySheet(e.id))}>
+    return <div key={i} className="row wd-ex" style={{ alignItems: 'flex-start' }} {...tappable(() => exerciseHistorySheet(e.id, w.id))}>
       {ex && <Thumb ex={ex} />}
       <div className="grow"><div className={`tt ${exerciseNameClass(ex)}`} style={{ fontWeight: 600 }}>{nameOf(e)} {prsOf(st.workouts, w).includes(e.id) && <span className="pr"><Icon name="trophy" />PR</span>}</div>
         <div className="ss">{e.sets.filter(hasCompletedWork).map(s => setLabel(e.id, s, e.target, speedUnitOf(st))).join('  ·  ') || t('no sets')}</div>

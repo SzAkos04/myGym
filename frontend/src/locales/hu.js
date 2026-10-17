@@ -2285,4 +2285,8 @@ export default {
   'Last 3 months': 'Utolsó 3 hónap',
   'Last year': 'Utolsó év',
   'Working sets': 'Munkaszettek',
+  'Around this session': 'Az alkalom körül',
+  'Latest sessions': 'Legutóbbi alkalmak',
+  'Change since {0}': 'Változás {0} óta',
+  'The first time you logged this exercise.': 'Először naplóztad ezt a gyakorlatot.',
 }

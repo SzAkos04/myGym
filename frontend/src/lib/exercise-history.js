@@ -27,7 +27,17 @@ export const HISTORY_SESSIONS = 10
 // A dumbbell entry logged per bell counts both bells (lib/dumbbells.js volumeFactor).
 const entryVolume = (rows, en) => rows.reduce((v, s) => v + completedVolumeOf(s), 0) * volumeFactor(en)
 
-export function exerciseHistory(S, exId, { limit = HISTORY_SESSIONS } = {}) {
+/** How many sessions are shown around one that was asked for: this many before it, one fewer after. */
+export const AROUND_BEFORE = 5
+
+/**
+ * `around` (a workout id) asks for the history as seen from one session: the list is the window of
+ * HISTORY_SESSIONS sessions around it (AROUND_BEFORE before, the rest after, shifted at either end),
+ * that session is flagged `focus`, and `focus` on the result describes it: its sets, value, estimated
+ * 1RM and volume, whether it set the record, and how each differs from the session before it. Without
+ * `around`, or when that session is not in the log, the latest sessions are listed as always.
+ */
+export function exerciseHistory(S, exId, { limit = HISTORY_SESSIONS, around = null } = {}) {
   // Dumbbell weights are read in the exercise's current meaning (lib/dumbbells.js), so the curve,
   // the best and the sessions compare like with like after a switch between each and total.
   const workouts = historyAs(S, exId, currentDbLoad(S, exId))?.workouts || []
@@ -47,7 +57,7 @@ export function exerciseHistory(S, exId, { limit = HISTORY_SESSIONS } = {}) {
   })
   logged.sort((a, b) => workoutAt(a.w) - workoutAt(b.w))
 
-  const empty = { mode: modeOf({ id: exId }), metric: 'weight', best: 0, prId: null, total: 0, sessions: [], points: [], e1rmPoints: [] }
+  const empty = { mode: modeOf({ id: exId }), metric: 'weight', best: 0, prId: null, total: 0, sessions: [], points: [], e1rmPoints: [], focus: null }
   if (!logged.length) return empty
 
   const mode = logged[logged.length - 1].mode
@@ -81,9 +91,22 @@ export function exerciseHistory(S, exId, { limit = HISTORY_SESSIONS } = {}) {
   // no weight logged is not a PR of anything.
   if (best <= 0) prId = null
 
+  const at = around == null ? -1 : sessions.findIndex(s => s.id === around)
+  let shown = sessions.slice(-limit), focus = null
+  if (at >= 0) {
+    const start = Math.min(Math.max(0, at - AROUND_BEFORE), Math.max(0, sessions.length - limit))
+    shown = sessions.slice(start, start + limit)
+    const s = sessions[at], prev = at > 0 ? sessions[at - 1] : null
+    const diff = (a, b) => (a != null && b != null ? Math.round((a - b) * 100) / 100 : null)
+    focus = {
+      id: s.id, d: s.d, sets: s.sets, target: s.target, mode: s.mode, value: s.value, e1rm: s.e1rm, volume: s.volume, pr: s.id === prId,
+      prev: prev ? { d: prev.d, value: prev.value, e1rm: prev.e1rm, volume: prev.volume } : null,
+      delta: prev ? { value: diff(s.value, prev.value), e1rm: diff(s.e1rm, prev.e1rm), volume: diff(s.volume, prev.volume) } : null,
+    }
+  }
   return {
-    mode, metric, best, prId, total: sessions.length,
-    sessions: sessions.slice(-limit).reverse().map(s => ({ ...s, pr: s.id === prId })),
+    mode, metric, best, prId, total: sessions.length, focus,
+    sessions: shown.slice().reverse().map(s => ({ ...s, pr: s.id === prId, focus: at >= 0 && s.id === around })),
     points, e1rmPoints,
   }
 }

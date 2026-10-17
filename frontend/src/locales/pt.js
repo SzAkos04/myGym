@@ -2282,4 +2282,8 @@ export default {
   'Last 3 months': 'Últimos 3 meses',
   'Last year': 'Último ano',
   'Working sets': 'Séries de trabalho',
+  'Around this session': 'Em torno desta sessão',
+  'Latest sessions': 'Últimas sessões',
+  'Change since {0}': 'Alteração desde {0}',
+  'The first time you logged this exercise.': 'A primeira vez que registou este exercício.',
 }
