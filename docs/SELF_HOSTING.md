@@ -284,7 +284,7 @@ same device.
 Prefer to keep the whole thing off the open internet? A VPN or an auth proxy (Authelia, Cloudflare
 Access…) in front still works, and composes with the above.
 
-Behind an auth proxy, let three files through without a login: `/icon-180.png`, `/icon-512.png`
+Behind an auth proxy, let three files through without a login: `/mygym-180.png`, `/mygym-512.png`
 and `/manifest.json` — the app's icon and its manifest, nothing personal in them. iOS fetches the
 Home Screen icon outside the page, without your session cookie, so a gated icon comes back as the
 proxy's login page and iOS 26 draws a letter tile instead of the dumbbell (observed on iOS 26.6
