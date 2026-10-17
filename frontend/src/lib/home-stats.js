@@ -4,6 +4,7 @@ import { EXIDX } from './exercises.js'
 import { muscleWeightsOf } from './muscles.js'
 import { isWarmupRow } from './workout-model.js'
 import { workoutAt } from './history.js'
+import { prsOf } from './pr-derive.js'
 
 /** Display groups, in the order they are listed: the English names are the i18n keys. */
 export const SET_GROUPS = [
@@ -88,4 +89,39 @@ export function todaySummary(workouts, routines, todayISO) {
   const estMin = last && last.end > last.start ? Math.round((last.end - last.start) / 60000) : null
   const daysAgo = last && last.d ? Math.max(0, Math.round((isoDay(todayISO) - isoDay(last.d)) / DAY)) : null
   return { exercises, estMin, daysAgo, muscles }
+}
+
+/** The muscle groups a routine trains, the ones with the most planned sets first (at most `n`). */
+export function routineMuscles(routine, n = 4) {
+  const by = {}
+  for (const c of routine?.ex || []) {
+    const sets = Math.max(1, Number(c.sets) || 1)
+    for (const key of primaryGroupsOf(c)) by[key] = (by[key] || 0) + sets
+  }
+  return SET_GROUPS.filter(g => by[g.key]).sort((a, b) => by[b.key] - by[a.key]).slice(0, n).map(g => g.name)
+}
+
+/** The muscle groups a logged workout worked, by working sets, at most `n`. */
+export function workoutMuscles(w, n = 3) {
+  const { groups } = weeklyWorkingSets([w], w?.d || '', w?.d || '')
+  return [...groups].sort((a, b) => b.sets - a.sets).slice(0, n).map(g => g.name)
+}
+
+/** Workouts, working sets and records over `fromISO`..`toISO`; records include the ones the history earns (pr-derive). */
+export function periodSummary(workouts, fromISO, toISO) {
+  const inRange = (workouts || []).filter(w => w?.d && w.d >= fromISO && w.d <= toISO)
+  const prs = inRange.reduce((n, w) => n + prsOf(workouts, w).length, 0)
+  return { workouts: inRange.length, sets: weeklyWorkingSets(workouts, fromISO, toISO).total, prs }
+}
+
+/** { 'YYYY-MM': { workouts, mins } } for the rows of History, so a month can wear its total. */
+export function monthTotals(workouts) {
+  const out = {}
+  for (const w of workouts || []) {
+    if (!w?.d) continue
+    const m = out[w.d.slice(0, 7)] || (out[w.d.slice(0, 7)] = { workouts: 0, mins: 0 })
+    m.workouts++
+    if (w.end > w.start) m.mins += Math.round((w.end - w.start) / 60000)
+  }
+  return out
 }

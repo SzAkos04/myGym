@@ -2280,4 +2280,5 @@ export default {
   'What Home calls you.': 'Így szólít meg a főoldal.',
   'last done {0} day ago': 'utoljára {0} napja',
   'last done {0} days ago': 'utoljára {0} napja',
+  'This round': 'Ez a kör',
 }

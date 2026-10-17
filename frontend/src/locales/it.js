@@ -2277,4 +2277,5 @@ export default {
   'What Home calls you.': 'What Home calls you.',
   'last done {0} day ago': 'last done {0} day ago',
   'last done {0} days ago': 'last done {0} days ago',
+  'This round': 'This round',
 }

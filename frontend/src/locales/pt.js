@@ -2277,4 +2277,5 @@ export default {
   'What Home calls you.': 'Como o início o trata.',
   'last done {0} day ago': 'último há {0} dia',
   'last done {0} days ago': 'último há {0} dias',
+  'This round': 'Esta ronda',
 }

@@ -21,6 +21,7 @@ import { MOBILE } from '../lib/mobile.js'
 import { coachAvailable } from '../lib/coach.js'
 import { queueOf, queueView } from '../lib/queue.js'
 import { deriveSessionName } from '../lib/session-merge.js'
+import { routineMuscles } from '../lib/home-stats.js'
 import { markUndone, undoMarks } from '../lib/sync-merge.js'
 import {
   scheduleModeOf, queueRecovery, rotationIds, saveRotation, startNewPass, startPass, stopPass,
@@ -288,6 +289,15 @@ function Schedule({ S, update, nav, mode }) {
       </Row>
     </Section>
 
+    {/* The loop at a glance: what is next, and how far this round is. */}
+    {mode === 'rotation' && qv && !qv.waiting && !external && qv.items.some(i => i.state === 'next') && <div className="card plan-hero">
+      <div className="row between"><span className="plan-kick">{t('This round')}</span>
+        <span className="small muted">{t('{0} of {1} done this round.', doneCount, qv.items.length)}</span></div>
+      <div className="plan-hero-title">{qv.items.find(i => i.state === 'next').name}</div>
+      <div className="small muted">{t('Up next')}</div>
+      <div className="chips plan-hero-chips">{qv.items.map((i, n) => <span key={n} className={'chip' + (i.state === 'next' ? ' on' : '')}>{i.state === 'done' ? '✓ ' : ''}{i.name}</span>)}</div>
+    </div>}
+
     {!S.routines.length && <div className="empty plan-empty">
       <div className="ico"><Icon name="clipboard" /></div>{t('No routines yet.')}<br />{t('Make one, or grab the starter plan to get going.')}
       <div style={{ marginTop: 12 }}><Button icon="clipboard" onClick={starterPlanSheet}>{t('Load starter plan')}</Button></div>
@@ -324,7 +334,7 @@ function Schedule({ S, update, nav, mode }) {
           // The loop's swipe is remove-only (v1.3.11): a routine is in the loop once, so there is
           // nothing to copy. The row the reorder measures is the swipe's outer element.
           const reorderProps = { 'data-reorder-row': '', style: loopReorder.rowStyle(i) }
-          const row = <div {...(swipe ? {} : { key: id, ...reorderProps })} className={'item rotation-row' + (item?.state === 'done' ? ' is-done' : '')}>
+          const row = <div {...(swipe ? {} : { key: id, ...reorderProps })} className={'item rotation-row' + (item?.state === 'done' ? ' is-done' : '') + (item?.state === 'next' ? ' is-next' : '')}>
             {editing && <button className="plan-minus" aria-label={t('Remove {0}', r?.name ?? id)} title={t('Remove')}
               onClick={() => takeOut(id)}><Icon name="minus" /></button>}
             <span className={'plan-order' + (item?.state === 'next' ? ' next' : '')}>{item?.state === 'done' ? <Icon name="check" /> : i + 1}</span>
@@ -332,6 +342,7 @@ function Schedule({ S, update, nav, mode }) {
             <div className="grow" style={{ minWidth: 0 }}>
               <div className="tt">{r?.name ?? id}</div>
               <div className="ss">{item ? stateWord(item) : r ? exCount(r.ex.length) : ''}</div>
+              {r && routineMuscles(r).length > 0 && <div className="hero-muscles">{routineMuscles(r).map(m => <span key={m}>{t(m)}</span>)}</div>}
             </div>
             {editing && seq.length > 1 && <button className="plan-handle" aria-label={t('Move {0}', r?.name ?? id)} title={t('Drag to reorder')}
               {...loopReorder.handle(i)}><Icon name="chevronsUpDown" /></button>}
@@ -439,7 +450,8 @@ function Routines({ S, update, nav }) {
         : <div className="list routine-list plan-routines">{routines.map(r => {
           const row = <div key={r.id} className="item plan-routine" {...tappable(() => nav('/plan/r/' + r.id))}>
             <span className="lrow-i"><Icon name={glyphOf(r.emoji)} /></span>
-            <div className="grow"><div className="tt">{r.name}</div><div className="ss">{sub(r)}</div></div>
+            <div className="grow"><div className="tt">{r.name}</div><div className="ss">{sub(r)}</div>
+              {routineMuscles(r).length > 0 && <div className="hero-muscles">{routineMuscles(r).map(m => <span key={m}>{t(m)}</span>)}</div>}</div>
             <Icon name="chevronRight" className="chev" /></div>
           // Swipe (v1.3.11, Settings → Swipe actions): toward the start deletes with an Undo,
           // toward the end duplicates. Edit's minus and the routine's own page stay the way in

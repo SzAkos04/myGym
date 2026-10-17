@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { weeklyWorkingSets, lastWorkoutSummary, todaySummary, primaryGroupsOf } from './home-stats.js'
+import { weeklyWorkingSets, lastWorkoutSummary, todaySummary, primaryGroupsOf, routineMuscles, workoutMuscles, periodSummary, monthTotals } from './home-stats.js'
 
 const set = (done = true, extra = {}) => ({ w: 50, r: 8, done, ...extra })
 const w = (id, d, entries, extra = {}) => ({ id, d, start: Date.parse(d + 'T10:00:00'), entries, ...extra })
@@ -68,5 +68,36 @@ describe('todaySummary', () => {
   it('says nothing it does not know', () => {
     expect(todaySummary([], [routine], '2026-10-17')).toMatchObject({ estMin: null, daysAgo: null })
     expect(todaySummary([], [], '2026-10-17')).toEqual({ exercises: 0, estMin: null, daysAgo: null, muscles: [] })
+  })
+})
+
+describe('routineMuscles / workoutMuscles', () => {
+  it('names the groups by planned sets and by sets done', () => {
+    const r = { ex: [{ id: '0025', sets: 4 }, { id: '0027', sets: 2 }] }
+    expect(routineMuscles(r)).toEqual(['Chest', 'Back'])
+    expect(routineMuscles(r, 1)).toEqual(['Chest'])
+    expect(routineMuscles(undefined)).toEqual([])
+    const done = w('a', '2026-10-12', [{ id: '0025', sets: [set(), set(), set()] }, { id: '0027', sets: [set()] }])
+    expect(workoutMuscles(done)).toEqual(['Chest', 'Back'])
+    expect(workoutMuscles(null)).toEqual([])
+  })
+})
+
+describe('periodSummary / monthTotals', () => {
+  const ws = [
+    w('a', '2026-10-12', [{ id: '0025', sets: [set(), set()] }], { prs: ['0025'], start: 0, end: 30 * 60000 }),
+    w('b', '2026-10-20', [{ id: '0025', sets: [set()] }], { start: 0, end: 20 * 60000 }),
+    w('c', '2026-09-30', [{ id: '0025', sets: [set()] }]),
+  ]
+  it('counts workouts, sets and records inside the dates, earned records included', () => {
+    const p = periodSummary(ws, '2026-10-01', '2026-10-31')
+    expect(p.workouts).toBe(2)
+    expect(p.sets).toBe(3)
+    expect(p.prs).toBeGreaterThanOrEqual(1)
+    expect(periodSummary([], '2026-10-01', '2026-10-31')).toEqual({ workouts: 0, sets: 0, prs: 0 })
+  })
+  it('totals each month', () => {
+    expect(monthTotals(ws)).toEqual({ '2026-10': { workouts: 2, mins: 50 }, '2026-09': { workouts: 1, mins: 0 } })
+    expect(monthTotals(undefined)).toEqual({})
   })
 })
