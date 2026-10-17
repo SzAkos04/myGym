@@ -2286,4 +2286,9 @@ export default {
   'Latest sessions': 'Últimas sessões',
   'Change since {0}': 'Alteração desde {0}',
   'The first time you logged this exercise.': 'A primeira vez que registou este exercício.',
+  'Server connection': 'Ligação ao servidor',
+  'Last synced': 'Última sincronização',
+  'Waiting changes': 'Alterações pendentes',
+  'Response time': 'Tempo de resposta',
+  'No answer': 'Sem resposta',
 }

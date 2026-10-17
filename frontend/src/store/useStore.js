@@ -314,6 +314,7 @@ export const useStore = create((set, get) => {
   let pushing = null       // the PUT in flight, so a second push waits for it instead of racing it
   let pushAgain = false    // a push asked for while one was in flight — run once more after it
   let pulling = null       // the GET in flight, so two resume signals make one request
+  let busyN = 0            // pushes and pulls out right now (sync.busy, below)
   let configFetch = null   // the /api/config in flight, so two callers make one request
   let pushPending = false  // a change made before boot's pull — pushed once boot is through
   let forceNext = false    // the next push replaces the server copy outright (reset)
@@ -441,6 +442,9 @@ export const useStore = create((set, get) => {
     next.status = statusOf(next, get().user)
     if (Object.keys(next).some(k => (k === 'lastError' ? !sameError(next[k], cur[k]) : next[k] !== cur[k]))) set({ sync: next })
   }
+  // While a push or a pull is out, sync.busy is true: the cloud on Home turns while it lasts
+  // (components/SyncCloud.jsx). Counted, since a pull runs its push inside it.
+  const busy = on => { busyN = Math.max(0, busyN + (on ? 1 : -1)); setSync({ busy: busyN > 0 }) }
   const isNetworkError = e => e && e.status == null   // fetch itself failed, or gave up: no response at all
   const refused = e => e?.status === 401 || e?.code === 'not-paired'
   // The server answered: whatever was wrong with the connection is over.
@@ -1303,7 +1307,7 @@ export const useStore = create((set, get) => {
   meta.set(S0, { base: readStoredSync(), owed: storedOwed() })
   const user0 = (() => { try { return JSON.parse(localStorage.getItem('gym_user')) || null } catch { return null } })()
   adoptHold = !!user0 && readAdopt()?.uid === user0.id
-  const sync0 = { offline: false, pending: storedOwed(), auth: false, lastError: null, lastSynced: (() => { try { return +localStorage.getItem(SYNCED_AT_KEY) || 0 } catch { return 0 } })(), server: serverBase(), held: adoptHold }
+  const sync0 = { offline: false, busy: false, pending: storedOwed(), auth: false, lastError: null, lastSynced: (() => { try { return +localStorage.getItem(SYNCED_AT_KEY) || 0 } catch { return 0 } })(), server: serverBase(), held: adoptHold }
   sync0.status = statusOf(sync0, user0)
 
   return {
@@ -1595,7 +1599,9 @@ export const useStore = create((set, get) => {
       pushTm = null
       if (adoptHold) return   // the sign-in has not decided what this copy is yet (adoptProfile)
       if (pushing) { pushAgain = true; return pushing.then(() => pushing) }
+      busy(true)
       pushing = doPush().finally(() => {
+        busy(false)
         pushing = null
         if (pushAgain) { pushAgain = false; get().pushState() }
       })
@@ -1608,6 +1614,7 @@ export const useStore = create((set, get) => {
       if (adoptHold) return   // as pushState: adoptProfile reads the server itself
       if (pulling) return pulling
       pulling = (async () => {
+        busy(true)
         try {
           if (pushTm) { clearTimeout(pushTm); pushTm = null; await get().pushState() }
           else if (pushing) await pushing
@@ -1656,7 +1663,7 @@ export const useStore = create((set, get) => {
           pushPending = false
           await get().pushState()
         } catch (e) { failed(e) /* keep local; the poll retries */ }
-        finally { pulling = null }
+        finally { pulling = null; busy(false) }
       })()
       return pulling
     },

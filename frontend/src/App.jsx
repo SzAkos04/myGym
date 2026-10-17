@@ -14,7 +14,7 @@ import { setSystemBarsLight } from './lib/system-bars.js'
 import { initBackButton } from './lib/back.js'
 import { useWakeLock } from './lib/wakelock.js'
 import { installViewportGuard } from './lib/viewport-guard.js'
-import { motionDir, setMotion, takeGesture } from './lib/screen-motion.js'
+import { useScreenMotion } from './lib/use-screen-motion.js'
 import ScreenGhost from './components/ScreenGhost.jsx'
 import ViewRouter from './components/ViewRouter.jsx'
 import EdgeSwipeBack from './components/EdgeSwipeBack.jsx'
@@ -75,14 +75,8 @@ function Shell() {
   const loc = useLocation()
   const navType = useNavigationType()
   const { S, user, ready } = useStore()
-  // Which way this screen change moves (lib/screen-motion.js). Worked out once per path: a render
-  // that only re-reads the same path keeps the direction, or the animation would be swapped mid-way.
-  const motion = useRef({ path: null, dir: 'none', last: null })
-  if (motion.current.path !== loc.pathname) {
-    // the browser's own back swipe has already animated this change: no second animation on top of it
-    motion.current = { path: loc.pathname, dir: takeGesture() ? 'gesture' : motionDir(motion.current.last, loc.pathname, navType), last: loc.pathname }
-    setMotion(motion.current.dir)
-  }
+  // Which way this screen change moves (lib/screen-motion.js, lib/use-screen-motion.js).
+  const motionDirNow = useScreenMotion(loc.pathname, navType)
   // iOS: whether timer sounds get past the ring/silent switch (Settings → Sounds). Page-level,
   // so it is applied here on load and on change rather than at each beep.
   useEffect(() => { setPlayOnSilent(!!S.soundOnSilent) }, [S.soundOnSilent])
@@ -212,7 +206,7 @@ function Shell() {
     <>
       {/* keyed on the route: a view that throws is contained, and switching tabs
           re-mounts the boundary, so the tab bar is always a way out */}
-      <div id="app" className="vfade" data-dir={motion.current.dir} key={loc.pathname}>
+      <div id="app" className="vfade" data-dir={motionDirNow} key={loc.pathname}>
         <ScreenGhost path={loc.pathname} />
         <ErrorBoundary>
           {!authed ? <Login /> : needsMobileOnboarding ? <MobileOnboarding /> : (

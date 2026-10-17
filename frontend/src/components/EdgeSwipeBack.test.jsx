@@ -10,7 +10,8 @@ vi.mock('../lib/screen-motion.js', async () => ({
 }))
 
 import EdgeSwipeBack from './EdgeSwipeBack.jsx'
-import { saveSnapshot, pushEntry, resetSnapshots } from '../lib/screen-snapshots.js'
+import { saveSnapshot, resetSnapshots } from '../lib/screen-snapshots.js'
+import { pushEntry, resetAppHistory } from '../lib/app-history.js'
 
 let root, host
 const touch = (type, x) => {
@@ -22,7 +23,7 @@ const touch = (type, x) => {
 
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
-  resetSnapshots()
+  resetSnapshots(); resetAppHistory()
   document.body.innerHTML = '<div id="app" style="">current</div>'
   Object.defineProperty(window, 'innerWidth', { value: 400, configurable: true })
   host = document.createElement('div')
@@ -51,7 +52,7 @@ describe('swipe back from the left edge', () => {
     expect(touch('touchstart', 8).defaultPrevented).toBe(false)    // no step back yet
     pushEntry({ path: '/settings', loc: { pathname: '/settings', search: '', hash: '', state: null } })
     expect(touch('touchstart', 150).defaultPrevented).toBe(false)  // not at the edge
-    resetSnapshots(); pushEntry({ path: '/other', loc: { pathname: '/other', search: '', hash: '', state: null } })
+    resetSnapshots(); resetAppHistory(); pushEntry({ path: '/other', loc: { pathname: '/other', search: '', hash: '', state: null } })
     expect(touch('touchstart', 8).defaultPrevented).toBe(false)    // nothing to show beneath
     expect(document.querySelector('.screen-under')).toBeNull()
   })

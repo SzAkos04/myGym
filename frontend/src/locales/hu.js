@@ -2289,4 +2289,9 @@ export default {
   'Latest sessions': 'Legutóbbi alkalmak',
   'Change since {0}': 'Változás {0} óta',
   'The first time you logged this exercise.': 'Először naplóztad ezt a gyakorlatot.',
+  'Server connection': 'Szerverkapcsolat',
+  'Last synced': 'Utoljára szinkronizálva',
+  'Waiting changes': 'Várakozó változások',
+  'Response time': 'Válaszidő',
+  'No answer': 'Nincs válasz',
 }

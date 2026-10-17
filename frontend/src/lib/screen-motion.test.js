@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture, markGesture, takeGesture, isTabSwitch, afterScreenSettles } from './screen-motion.js'
+import { tabIndexOf, motionDir, depthOf, markGesture, takeGesture, isTabSwitch, afterScreenSettles } from './screen-motion.js'
 
 describe('tabIndexOf', () => {
   it('puts the sub-screens under the tab the bar highlights for them', () => {
@@ -59,22 +59,6 @@ describe('motionDir', () => {
   it('does nothing on the first screen or for the same one', () => {
     expect(motionDir(null, '/home', 'POP')).toBe('none')
     expect(motionDir('/home', '/home', 'REPLACE')).toBe('none')
-  })
-})
-
-describe('isBrowserBackGesture', () => {
-  const base = { action: 'POP', ios: true, standalone: true, sinceOwnMs: Infinity }
-  it('is the installed iOS app stepping back on its own: the swipe from the left edge', () => {
-    expect(isBrowserBackGesture(base)).toBe(true)
-  })
-  it('is not when the app asked for the step itself, however it got there', () => {
-    expect(isBrowserBackGesture({ ...base, sinceOwnMs: 80 })).toBe(false)
-    expect(isBrowserBackGesture({ ...base, sinceOwnMs: 5000 })).toBe(true)
-  })
-  it('is not anywhere the browser has no such gesture to animate', () => {
-    expect(isBrowserBackGesture({ ...base, ios: false })).toBe(false)
-    expect(isBrowserBackGesture({ ...base, standalone: false })).toBe(false)
-    expect(isBrowserBackGesture({ ...base, action: 'PUSH' })).toBe(false)
   })
 })
 

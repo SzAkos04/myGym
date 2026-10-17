@@ -2290,4 +2290,9 @@ export default {
   'Latest sessions': 'Latest sessions',
   'Change since {0}': 'Change since {0}',
   'The first time you logged this exercise.': 'The first time you logged this exercise.',
+  'Server connection': 'Server connection',
+  'Last synced': 'Last synced',
+  'Waiting changes': 'Waiting changes',
+  'Response time': 'Response time',
+  'No answer': 'No answer',
 }

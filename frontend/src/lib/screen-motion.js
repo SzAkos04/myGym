@@ -53,28 +53,18 @@ export function motionDir(prev, next, navType) {
   return navType === 'POP' ? 'pop' : 'push'
 }
 
-/**
- * Whether a history step was the browser's own back gesture rather than the app's. The installed iOS
- * app has no back button, only the swipe from the left edge, and iOS animates that itself (the page
- * follows the finger and the previous screen slides in) before it tells the page; animating the change
- * again then plays the whole thing a second time. Only a POP in the installed iOS app that the app did
- * not start itself (`sinceOwnMs`: how long since it called history.go; Infinity for never) counts.
- */
-export function isBrowserBackGesture({ action, ios, standalone, sinceOwnMs }) {
-  return action === 'POP' && !!ios && !!standalone && !(sinceOwnMs < 1000)
-}
-
-/** The installed iOS app (home-screen web app): the only place the system has an edge swipe to animate. */
+/** The installed iOS app (home-screen web app): the app keeps its own history and does its own swipe back there. */
 export const isIosApp = () => typeof navigator !== 'undefined' && typeof window !== 'undefined'
   && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
   && !!(window.navigator.standalone || window.matchMedia?.('(display-mode: standalone)').matches)
 
-// Whether the screen change now starting is the browser's own back gesture (see isBrowserBackGesture):
-// ViewRouter marks it, the Shell takes the mark when it works out the direction, so the DOM animation
-// is skipped for it too.
+// Whether the screen change now starting has already been shown by the app's own slide (the swipe back,
+// or a back button animated like it: components/EdgeSwipeBack.jsx marks it), so the Shell plays no
+// second animation on top (lib/use-screen-motion.js takes the mark).
 let gesture = false
 export const markGesture = () => { gesture = true }
 export const takeGesture = () => { const g = gesture; gesture = false; return g }
+export const isGestureMarked = () => gesture
 
 // The direction of the screen change in flight, for the copy of the old screen that slides away
 // (components/ScreenGhost.jsx reads it as it unmounts, in the same commit that set it).

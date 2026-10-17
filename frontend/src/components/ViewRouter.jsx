@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Router, UNSAFE_createHashHistory as createHashHistory } from 'react-router-dom'
-import { motionDir, isBrowserBackGesture, markGesture, isIosApp, isTabSwitch } from '../lib/screen-motion.js'
-import { pushEntry, popEntries } from '../lib/screen-snapshots.js'
+import { motionDir, isGestureMarked, isIosApp, isTabSwitch } from '../lib/screen-motion.js'
+import { pushEntry, popEntries, previousPath, animateBack } from '../lib/app-history.js'
 
 // A hash router whose screen changes are ours to animate. The declarative HashRouter has no hook for
 // that, so the history is ours.
@@ -19,9 +19,6 @@ import { pushEntry, popEntries } from '../lib/screen-snapshots.js'
 // either: the system took the touch over midway. So there the app keeps its own history in memory and
 // writes every location over the browser's current entry (replace): the browser has no earlier entry,
 // its swipe has nothing to go back to, and the app's gesture is the only one.
-const IOS = typeof navigator !== 'undefined'
-  && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
-const standalone = () => !!(window.navigator.standalone || window.matchMedia?.('(display-mode: standalone)').matches)
 
 const canTransition = () => typeof document !== 'undefined' && typeof document.startViewTransition === 'function'
   && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -32,31 +29,39 @@ const asTo = loc => ({ pathname: loc.pathname, search: loc.search, hash: loc.has
 export default function ViewRouter({ children }) {
   const historyRef = useRef(null)
   const logical = useRef(null)          // what the app itself is doing in the iOS app: 'PUSH' or 'POP'
-  const ownPopAt = useRef(0)
   if (historyRef.current == null) {
     const h = createHashHistory({ v5Compat: true })
     if (isIosApp()) {
       const replace = h.replace.bind(h)
       h.push = (to, state) => {
         // Between the tabs' own screens nothing is added: a tab bar has no step back, and neither may the swipe.
+        const here = h.location.pathname
         const next = typeof to === 'string' ? to.split(/[?#]/)[0] : to?.pathname
-        if (!isTabSwitch(h.location.pathname, next)) pushEntry({ path: h.location.pathname, loc: h.location })
-        logical.current = 'PUSH'
-        replace(to, state)
+        const step = () => {
+          if (!isTabSwitch(here, next)) pushEntry({ path: here, loc: h.location })
+          logical.current = 'PUSH'
+          replace(to, state)
+        }
+        // A button that leads to a shallower screen (the Home button of Settings) is a way back, and the
+        // workout's minimize is the way down: they slide away like the swipe does, in script, instead of
+        // relying on a copy of the old screen being animated by CSS (it never moved on the iPhone).
+        const dir = next ? motionDir(here, next, 'PUSH') : 'none'
+        if ((dir === 'pop' || dir === 'down') && animateBack(next, step, dir)) return
+        step()
       }
       h.go = n => {
         if (!(n < 0)) return
-        const target = popEntries(-n)
-        if (!target) return
-        ownPopAt.current = Date.now()
-        logical.current = 'POP'
-        replace(asTo(target.loc), target.loc.state)
+        const step = () => {
+          const target = popEntries(-n)
+          if (!target) return
+          logical.current = 'POP'
+          replace(asTo(target.loc), target.loc.state)
+        }
+        // The swipe marks its own step: it has already been shown.
+        const dir = n === -1 && !isGestureMarked() && previousPath() ? motionDir(h.location.pathname, previousPath(), 'POP') : 'none'
+        if ((dir === 'pop' || dir === 'down') && animateBack(previousPath(), step, dir)) return
+        step()
       }
-    } else {
-      // Remember when the app itself steps back (navigate(-1) calls this): a pop that arrives without
-      // one is the browser's back gesture, which iOS has already animated.
-      const go = h.go.bind(h)
-      h.go = n => { ownPopAt.current = Date.now(); go(n) }
     }
     historyRef.current = h
   }
@@ -78,12 +83,7 @@ export default function ViewRouter({ children }) {
     const next = { ...update, action }
     // A redirect (REPLACE) is not a screen the user went to; a change of query only is not a new screen.
     const dir = action === 'REPLACE' ? 'none' : motionDir(prev, update.location.pathname, action)
-    // The browser's own back swipe has already animated this change: no second animation on top of it.
-    const gesture = dir !== 'none' && isBrowserBackGesture({
-      action, ios: IOS, standalone: standalone(), sinceOwnMs: ownPopAt.current ? Date.now() - ownPopAt.current : Infinity,
-    })
-    if (gesture) markGesture()
-    if (dir === 'none' || gesture || !canTransition()) { setState(next); return }
+    if (dir === 'none' || !canTransition()) { setState(next); return }
     const root = document.documentElement
     root.dataset.vt = dir
     const t = document.startViewTransition(() => { flushSync(() => setState(next)) })

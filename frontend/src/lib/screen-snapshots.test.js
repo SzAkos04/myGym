@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { saveSnapshot, getSnapshot, pushEntry, popEntries, entryCount, previousPath, resetSnapshots } from './screen-snapshots.js'
+import { saveSnapshot, getSnapshot, resetSnapshots } from './screen-snapshots.js'
+import { pushEntry, popEntries, entryCount, previousPath, resetAppHistory } from './app-history.js'
 
-beforeEach(resetSnapshots)
+beforeEach(() => { resetSnapshots(); resetAppHistory() })
 
 describe('screen copies', () => {
   it('keeps the last few and hands back the one asked for', () => {

@@ -26,7 +26,7 @@ export const PENDING_GRACE_MS = 5000
    The public demo has no server by design and says so itself; it never shows there. */
 // What the indicator would say right now, and whether it would say it: shared by the banner and
 // by the dot that stands in for it when the banner is switched off (useConnectionTrouble).
-function useConnection() {
+export function useConnection() {
   const user = useStore(s => s.user)
   const sync = useStore(s => s.sync)
   const guest = useStore(s => s.isGuest())
@@ -45,7 +45,7 @@ function useConnection() {
   // Signed out on the web, the sign-in screen is the whole app: it hears only that the server
   // ended the session, and that the changes are still here.
   const show = !DEMO && !onboarding && !!view?.banner && (!!user || guest || status === 'auth') && (status !== 'pending' || waited)
-  return { view, show, user, status }
+  return { view, show, user, status, waited }
 }
 
 // "Show connection status" (#369, #330): on by default, and an older profile without the key
@@ -67,6 +67,18 @@ export function useConnectionTrouble() {
   const on = useStore(s => showsConnection(s.S))
   const { view, show } = useConnection()
   return !on && show && (view.tone === 'off' || view.tone === 'bad' || view.tone === 'wait')
+}
+
+// What the indicator's button does (the bar here, the cloud's panel on Home).
+export function connectionAction(action, { user, status, nav }) {
+  return {
+    retry: () => syncNowWithToast(),
+    pair: pairAgain,
+    connect: connectServer,
+    // Signed in, or with a session the server ended: the passkey right here. A guest goes to
+    // Settings, where signing in sits next to creating a profile.
+    signin: () => (user || status === 'auth' ? signInAgain() : nav('/settings/account')),
+  }[action]
 }
 
 export default function SyncBanner() {
@@ -92,14 +104,7 @@ export default function SyncBanner() {
   }, [show])
 
   if (!show) return null
-  const act = {
-    retry: () => { syncNowWithToast() },
-    pair: pairAgain,
-    connect: connectServer,
-    // Signed in, or with a session the server ended: the passkey right here. A guest goes to
-    // Settings, where signing in sits next to creating a profile.
-    signin: () => (user || status === 'auth' ? signInAgain() : nav('/settings/account')),
-  }[view.action]
+  const act = connectionAction(view.action, { user, status, nav })
   const label = actionLabel(view)
   const inner = <>
     <Icon name={view.icon} />

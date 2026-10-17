@@ -11,9 +11,9 @@ import QueueRow from '../components/QueueRow.jsx'
 import { queueOf, queueView, weekTally, pinState } from '../lib/queue.js'
 import { scheduleModeOf } from '../lib/rotation.js'
 import { useConnectionTrouble } from '../components/SyncBanner.jsx'
+import SyncCloud from '../components/SyncCloud.jsx'
 import { Button } from '../components/ui.jsx'
 import { tappable } from '../lib/use-sheet-keyboard.js'
-import { glyphOf } from '../lib/glyphs.js'
 import { dayNoteOf } from '../lib/day-notes.js'
 import { weeklyWorkingSets, lastWorkoutSummary, todaySummary } from '../lib/home-stats.js'
 import { prsOf } from '../lib/pr-derive.js'
@@ -118,7 +118,10 @@ export default function Home() {
   return <div className="narrow">
     <div className="hdr">
       <div><h1 {...(user ? { ...tappable(displayNameSheet), title: t('Display name') } : {})}>{user ? t('Hi {0}', (S.displayName || '').trim() || user.name) : 'myGym'}</h1><div className="sub">{today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
-      <button className="iconbtn" onClick={() => nav('/settings')} aria-label={trouble ? t('Settings') + ', ' + t('Connection problem') : t('Settings')}><Icon name="gear" />{trouble && <span className="tab-dot" aria-hidden="true" />}</button>
+      <div className="hdr-btns">
+        <SyncCloud />
+        <button className="iconbtn" onClick={() => nav('/settings')} aria-label={trouble ? t('Settings') + ', ' + t('Connection problem') : t('Settings')}><Icon name="gear" />{trouble && <span className="tab-dot" aria-hidden="true" />}</button>
+      </div>
     </div>
 
     <div className="card">

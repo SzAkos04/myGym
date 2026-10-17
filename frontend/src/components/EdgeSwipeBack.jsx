@@ -1,13 +1,14 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { isIosApp, markGesture, takeGesture, depthOf } from '../lib/screen-motion.js'
-import { getSnapshot, previousPath, entryCount } from '../lib/screen-snapshots.js'
+import { getSnapshot, getTabBar } from '../lib/screen-snapshots.js'
+import { previousPath, entryCount, setBackAnimator } from '../lib/app-history.js'
 import { EDGE, progressOf, shouldComplete, underShift, dimAt } from '../lib/edge-swipe.js'
 
 // The swipe back from the left edge, in the installed iOS app, done by the app itself. The system's
 // own gesture shows a snapshot of the previous screen under the page, and that snapshot is missing
 // when the page was scrolled (a black screen until the animation ends). So the touch that starts at
-// the edge is taken here: the screen follows the finger, a copy of the previous screen kept as it was left (lib/screen-snapshots.js)
+// the edge is taken here: the screen follows the finger, a copy of the previous screen kept as it was left (lib/screen-snapshots.js, lib/app-history.js)
 // drifts in beneath it, and on release it either goes back one step or springs back.
 //
 // It only starts from a screen opened from another one (never from a tab's own screen: switching tabs is
@@ -23,10 +24,12 @@ export default function EdgeSwipeBack() {
     let g = null
     const live = () => document.getElementById('app')            // the real screen: first in the document
 
+    // `g.vert`: the workout sinking away (down) instead of a screen sliding off to the right.
+    const span = () => (g?.vert ? window.innerHeight : window.innerWidth)
     const place = dx => {
-      const W = window.innerWidth, p = progressOf(dx, W)
-      g.app.style.transform = `translate3d(${dx}px,0,0)`
-      g.copy.style.transform = `translate3d(${underShift(p, W)}px,0,0)`
+      const W = span(), p = progressOf(dx, W)
+      g.app.style.transform = g.vert ? `translate3d(0,${dx}px,0)` : `translate3d(${dx}px,0,0)`
+      g.copy.style.transform = g.vert ? 'none' : `translate3d(${underShift(p, W)}px,0,0)`
       g.under.style.setProperty('--dim', dimAt(p))
     }
     const done = () => {
@@ -35,7 +38,7 @@ export default function EdgeSwipeBack() {
       g = null
     }
     const settle = (toDx, then) => {
-      const W = window.innerWidth
+      const W = span()
       g.app.style.transition = 'transform 280ms cubic-bezier(.32,.72,0,1)'
       g.copy.style.transition = 'transform 280ms cubic-bezier(.32,.72,0,1)'
       g.under.style.transition = 'none'
@@ -55,6 +58,10 @@ export default function EdgeSwipeBack() {
       const app = live()
       if (!snap || !app) return                                   // nothing to show beneath: the system's gesture stays
       e.preventDefault()
+      begin(snap, app, t.clientX)
+    }
+    // Puts the copy of the earlier screen under the live one; from here the live one is moved by `place`.
+    const begin = (snap, app, x0, vert = false) => {
       const under = document.createElement('div')
       under.className = 'screen-under'
       under.setAttribute('aria-hidden', 'true')
@@ -65,8 +72,8 @@ export default function EdgeSwipeBack() {
       // style: without this the finger moved nothing and the screen was swapped at once at the end.
       app.style.animation = 'none'
       app.style.willChange = 'transform'
-      app.style.boxShadow = '-12px 0 30px rgba(0,0,0,.28)'
-      g = { x0: t.clientX, last: t.clientX, lastT: performance.now(), vx: 0, dx: 0, app, under, copy }
+      app.style.boxShadow = vert ? '0 -12px 30px rgba(0,0,0,.3)' : '-12px 0 30px rgba(0,0,0,.28)'
+      g = { x0, last: x0, lastT: performance.now(), vx: 0, dx: 0, app, under, copy, vert }
       place(0)
     }
     const move = e => {
@@ -78,25 +85,43 @@ export default function EdgeSwipeBack() {
       e.preventDefault()
       place(g.dx)
     }
+    // The slide has reached the edge: take the step it showed, with no second animation on top, and
+    // clear the copy once the new screen is painted.
+    const arrive = step => () => {
+      markGesture()
+      step()
+      setTimeout(takeGesture, 700)                                // a step that did not happen must not mark the next one
+      requestAnimationFrame(() => requestAnimationFrame(done))
+    }
     const end = () => {
       if (!g) return
-      const W = window.innerWidth
-      if (shouldComplete({ dx: g.dx, width: W, vx: g.vx })) {
-        settle(W, () => {
-          markGesture()                                           // the move is already shown: no second animation
-          nav(-1)
-          // a step that did not happen must not leave its mark on the next screen change
-          setTimeout(takeGesture, 700)
-          requestAnimationFrame(() => requestAnimationFrame(done))
-        })
-      } else settle(0, done)
+      if (shouldComplete({ dx: g.dx, width: window.innerWidth, vx: g.vx })) settle(window.innerWidth, arrive(() => nav(-1)))
+      else settle(0, done)
     }
+
+    // The back and Home buttons and leaving the workout: the same slide as a completed swipe, sideways or
+    // down (ViewRouter calls this before it steps).
+    setBackAnimator((dest, proceed, kind) => {
+      if (g) return true                                          // one already going: this press is the same step
+      // No copy of the screen it goes back to (the app was just opened on this one): the page colour
+      // beneath still lets the screen slide away, which beats it vanishing.
+      const snap = getSnapshot(dest) || document.createElement('div'), app = live()
+      if (!app) return false
+      begin(snap, app, 0, kind === 'down')
+      // The workout has no tab bar; Home has. Its copy lies on the picture beneath, so the bar is there as
+      // the workout sinks off it, and the real one takes the same place when the route changes.
+      if (kind === 'down') for (const n of getTabBar() || []) g.under.appendChild(n.cloneNode(true))
+      void app.offsetWidth                                        // the start must be painted, or there is nothing to move from
+      settle(span(), arrive(proceed))
+      return true
+    })
 
     window.addEventListener('touchstart', start, { passive: false })
     window.addEventListener('touchmove', move, { passive: false })
     window.addEventListener('touchend', end)
     window.addEventListener('touchcancel', end)
     return () => {
+      setBackAnimator(null)
       window.removeEventListener('touchstart', start)
       window.removeEventListener('touchmove', move)
       window.removeEventListener('touchend', end)

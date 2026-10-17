@@ -45,7 +45,7 @@ import { usePasskeys, PasskeysRow, DeviceLinkRow, openDeviceLinkRedeem } from '.
 import { Section, Row, SelectRow, Switch, Segmented, Button, TextField, SearchField } from '../components/ui.jsx'
 import { PAGES, ROOT_GROUPS, pageVisible, searchSettings, pageTrail } from './settings-pages.js'
 import { REPO as FORK_REPO, UPSTREAM_REPO } from '../lib/branding.js'
-import { entryCount } from '../lib/screen-snapshots.js'
+import { entryCount } from '../lib/app-history.js'
 
 /* Settings (v1.3.11). The root is one screen: an account card, eleven rows that each open a page
    (/settings/<page>), and a search over every row. Rare things live one level further down
