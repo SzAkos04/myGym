@@ -14,6 +14,8 @@ import { setSystemBarsLight } from './lib/system-bars.js'
 import { initBackButton } from './lib/back.js'
 import { useWakeLock } from './lib/wakelock.js'
 import { installViewportGuard } from './lib/viewport-guard.js'
+import { motionDir, setMotion } from './lib/screen-motion.js'
+import ScreenGhost from './components/ScreenGhost.jsx'
 import { installChipDrag } from './lib/hchips.js'
 import { syncPushSubscription } from './lib/push.js'
 import { MOBILE } from './lib/mobile.js'
@@ -62,7 +64,7 @@ function applyPrefs(theme, accent) {
   de.dataset.theme = resolveTheme(theme)
   applyAccent(de, accent, de.dataset.theme)
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.content = de.dataset.theme === 'light' ? '#f2f2f7' : '#000000'
+  if (meta) meta.content = de.dataset.theme === 'light' ? '#f3f1ee' : '#0b0a09'
   if (MOBILE) setSystemBarsLight(de.dataset.theme === 'light')
 }
 
@@ -71,6 +73,13 @@ function Shell() {
   const loc = useLocation()
   const navType = useNavigationType()
   const { S, user, ready } = useStore()
+  // Which way this screen change moves (lib/screen-motion.js). Worked out once per path: a render
+  // that only re-reads the same path keeps the direction, or the animation would be swapped mid-way.
+  const motion = useRef({ path: null, dir: 'none', last: null })
+  if (motion.current.path !== loc.pathname) {
+    motion.current = { path: loc.pathname, dir: motionDir(motion.current.last, loc.pathname, navType), last: loc.pathname }
+    setMotion(motion.current.dir)
+  }
   // iOS: whether timer sounds get past the ring/silent switch (Settings → Sounds). Page-level,
   // so it is applied here on load and on change rather than at each beep.
   useEffect(() => { setPlayOnSilent(!!S.soundOnSilent) }, [S.soundOnSilent])
@@ -200,7 +209,8 @@ function Shell() {
     <>
       {/* keyed on the route: a view that throws is contained, and switching tabs
           re-mounts the boundary, so the tab bar is always a way out */}
-      <div id="app" className="vfade" key={loc.pathname}>
+      <div id="app" className="vfade" data-dir={motion.current.dir} key={loc.pathname}>
+        <ScreenGhost />
         <ErrorBoundary>
           {!authed ? <Login /> : needsMobileOnboarding ? <MobileOnboarding /> : (
             <Routes>

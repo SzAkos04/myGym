@@ -194,15 +194,28 @@ body.no-tabbar.resting #app{padding-bottom:calc(96px + var(--sab))}
 .workout-end-spacer{height:0}
 @keyframes viewfade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 #app.vfade{animation:viewfade 260ms var(--ease)}
+/* Screens move like an iOS app's: tabs slide sideways in their order, going deeper pushes from the
+   right and coming back pops from the left (lib/screen-motion.js). The screen that was left slides
+   the other way as a copy (components/ScreenGhost.jsx). Opacity and transform only. */
+#app.vfade[data-dir="fwd"]{animation:scr-in-r 340ms var(--ease) both}
+#app.vfade[data-dir="back"]{animation:scr-in-l 340ms var(--ease) both}
+#app.vfade[data-dir="push"]{animation:scr-in-r 360ms var(--ease) both}
+#app.vfade[data-dir="pop"]{animation:scr-in-l 360ms var(--ease) both}
+@keyframes scr-in-r{from{opacity:0;transform:translate3d(34px,0,0)}to{opacity:1;transform:none}}
+@keyframes scr-in-l{from{opacity:0;transform:translate3d(-34px,0,0)}to{opacity:1;transform:none}}
+.screen-ghost{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
+.screen-ghost>#app{position:absolute;inset-inline:0;animation:scr-out-l 220ms var(--ease) both}
+.screen-ghost[data-dir="back"]>#app,.screen-ghost[data-dir="pop"]>#app{animation-name:scr-out-r}
+.screen-ghost *{pointer-events:none;animation:none!important}
+@keyframes scr-out-l{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(-24px,0,0)}}
+@keyframes scr-out-r{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(24px,0,0)}}
 /* The cards of a screen arrive one after the other instead of all at once. Only the first few,
    so a long screen is not still animating when you start to scroll. */
 #app.vfade .narrow>.card,#app.vfade .narrow>.hdr{animation:cardin 360ms var(--ease) both}
 #app.vfade .narrow>.hdr{animation-delay:0ms}
 #app.vfade .narrow>.card:nth-child(2){animation-delay:40ms}
 #app.vfade .narrow>.card:nth-child(3){animation-delay:80ms}
-#app.vfade .narrow>.card:nth-child(4){animation-delay:120ms}
-#app.vfade .narrow>.card:nth-child(5){animation-delay:160ms}
-@keyframes cardin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes cardin{from{opacity:0}to{opacity:1}}
 
 /* Connection indicator (components/SyncBanner.jsx): pinned under the status bar for as long as
    the app is not connected to a server. It carries the page's own ground and blur, like the
