@@ -53,6 +53,22 @@ function Sheet({ sheet }) {
   // horizontally under it (chip strips, heatmap) and the sheet stays put.
   const idle = () => ({ startX: null, startY: null, axis: null, delta: 0, vy: 0, lastY: 0, lastT: 0 })
   const drag = useRef(idle())
+  const rootRef = useRef(null)
+  // When the sheet goes (a button, the backdrop, back or a swipe), leave a copy of it behind that
+  // slides away: the app removes a closed sheet at once, which is the least native thing about it.
+  // Skipped under test, where a lingering copy would only get in the way of what the tests look up.
+  useLayoutEffect(() => {
+    const el = rootRef.current
+    return () => {
+      if (!el || import.meta.env.MODE === 'test' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+      const ghost = document.createElement('div')
+      ghost.className = 'ghost-layer'
+      ghost.setAttribute('aria-hidden', 'true')
+      for (const child of el.children) ghost.appendChild(child.cloneNode(true))
+      document.body.appendChild(ghost)
+      setTimeout(() => ghost.remove(), 320)
+    }
+  }, [])
 
   // a gesture that begins on a slider (or opted-out control) belongs to that control, not to
   // the sheet's swipe-to-dismiss — so it keeps working while you drag. Horizontal strips are
@@ -128,14 +144,14 @@ function Sheet({ sheet }) {
   if (sheet.kind === 'viewer') return <div>{sheet.render(close)}</div>
   if (sheet.kind === 'center') {
     return (
-      <div>
+      <div ref={rootRef}>
         <div className="mback" onClick={() => { if (!sheet.locked) close() }} />
         <div className="center">{sheet.render(close)}</div>
       </div>
     )
   }
   return (
-    <div>
+    <div ref={rootRef}>
       <div className="mback" onClick={() => { if (!sheet.locked) close() }} />
       <div className="sheet" ref={ref} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
         onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}>
