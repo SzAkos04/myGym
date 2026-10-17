@@ -1,6 +1,5 @@
-// Which way a screen change should move, like iOS: the bottom tabs slide sideways in their order
-// (Home, Plan, Stats, Exercises), going deeper into a screen pushes from the right and coming back
-// pops from the left. Pure, so the direction can be tested; App.jsx puts it on #app as data-dir.
+// How a screen change should look, like iOS: tabs cross-fade, going deeper pushes from the right and
+// coming back pops, the workout rises like a modal. Pure, so it can be tested; App.jsx puts it on #app as data-dir.
 
 const TAB_ORDER = ['home', 'plan', 'stats', 'library']
 // The same screens-under-a-tab mapping the tab bar highlights (components/TabBar.jsx).
@@ -19,13 +18,21 @@ export function tabIndexOf(pathname) {
 }
 
 /**
- * 'fwd' | 'back' between two tabs, 'push' | 'pop' within one tab (or into a screen under none),
- * 'none' on the first screen or when nothing changes. `navType` is react-router's: PUSH, POP, REPLACE.
+ * How a screen change should look, the way iOS does it:
+ *   'tab'  between two bottom tabs: a quick cross-fade, no sideways slide (a tab bar never slides);
+ *   'push' deeper into a screen: the new one slides in from the right over the old, which drifts left;
+ *   'pop'  back out: the leaving screen slides off to the right, the one beneath comes back;
+ *   'up' / 'down' the workout, which rises over everything like a modal and sinks away again;
+ *   'none' on the first screen or when nothing changes.
+ * `navType` is react-router's: PUSH, POP, REPLACE.
  */
 export function motionDir(prev, next, navType) {
   if (!prev || prev === next) return 'none'
+  const full = p => String(p).split('/')[1] === 'workout'
+  if (full(next)) return 'up'
+  if (full(prev)) return 'down'
   const a = tabIndexOf(prev), b = tabIndexOf(next)
-  if (a != null && b != null && a !== b) return b > a ? 'fwd' : 'back'
+  if (a != null && b != null && a !== b) return 'tab'
   return navType === 'POP' ? 'pop' : 'push'
 }
 

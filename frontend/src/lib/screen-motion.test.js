@@ -19,16 +19,22 @@ describe('tabIndexOf', () => {
 })
 
 describe('motionDir', () => {
-  it('slides the tabs sideways in their order', () => {
-    expect(motionDir('/home', '/stats', 'PUSH')).toBe('fwd')
-    expect(motionDir('/library', '/plan', 'PUSH')).toBe('back')
-    expect(motionDir('/history', '/library', 'PUSH')).toBe('fwd')   // History is under Stats
+  it('cross-fades between tabs, whichever way', () => {
+    expect(motionDir('/home', '/stats', 'PUSH')).toBe('tab')
+    expect(motionDir('/library', '/plan', 'PUSH')).toBe('tab')
+    expect(motionDir('/history', '/library', 'PUSH')).toBe('tab')   // History is under Stats
   })
   it('pushes into a screen and pops back out of it', () => {
     expect(motionDir('/stats', '/history', 'PUSH')).toBe('push')
     expect(motionDir('/history', '/stats', 'POP')).toBe('pop')
-    expect(motionDir('/home', '/workout', 'PUSH')).toBe('push')
-    expect(motionDir('/workout', '/home', 'POP')).toBe('pop')
+    expect(motionDir('/home', '/settings', 'PUSH')).toBe('push')
+    expect(motionDir('/plan', '/plan/r/abc', 'PUSH')).toBe('push')
+    expect(motionDir('/coach', '/coach/setup', 'PUSH')).toBe('push')
+  })
+  it('raises the workout like a modal and lowers it again', () => {
+    expect(motionDir('/home', '/workout', 'PUSH')).toBe('up')
+    expect(motionDir('/workout', '/home', 'PUSH')).toBe('down')
+    expect(motionDir('/workout', '/stats', 'POP')).toBe('down')
   })
   it('does nothing on the first screen or for the same one', () => {
     expect(motionDir(null, '/home', 'POP')).toBe('none')

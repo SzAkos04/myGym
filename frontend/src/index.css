@@ -194,21 +194,46 @@ body.no-tabbar.resting #app{padding-bottom:calc(96px + var(--sab))}
 .workout-end-spacer{height:0}
 @keyframes viewfade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 #app.vfade{animation:viewfade 260ms var(--ease)}
-/* Screens move like an iOS app's: tabs slide sideways in their order, going deeper pushes from the
-   right and coming back pops from the left (lib/screen-motion.js). The screen that was left slides
-   the other way as a copy (components/ScreenGhost.jsx). Opacity and transform only. */
-#app.vfade[data-dir="fwd"]{animation:scr-in-r 340ms var(--ease) both}
-#app.vfade[data-dir="back"]{animation:scr-in-l 340ms var(--ease) both}
-#app.vfade[data-dir="push"]{animation:scr-in-r 360ms var(--ease) both}
-#app.vfade[data-dir="pop"]{animation:scr-in-l 360ms var(--ease) both}
-@keyframes scr-in-r{from{opacity:0;transform:translate3d(34px,0,0)}to{opacity:1;transform:none}}
-@keyframes scr-in-l{from{opacity:0;transform:translate3d(-34px,0,0)}to{opacity:1;transform:none}}
+/* Screens move like an iOS app's (lib/screen-motion.js, components/ScreenGhost.jsx):
+     tab    a quick cross-fade, the tab bar itself never slides;
+     push   the new screen slides in from the right, over the old one, which drifts left and dims;
+     pop    the leaving screen slides off to the right, the one beneath drifts back in;
+     up     the workout rises from the bottom over everything; down: it sinks away again.
+   The screen that was left is a copy (.screen-ghost). Opacity and transform only. */
+#app{position:relative;z-index:41;background:var(--bg);min-height:100vh;min-height:100dvh}
+#app.vfade[data-dir="tab"]{animation:scr-fade-in 240ms ease-out both}
+#app.vfade[data-dir="push"]{animation:scr-push-in 460ms var(--ease) both}
+#app.vfade[data-dir="pop"]{animation:scr-pop-in 460ms var(--ease) both}
+#app.vfade[data-dir="up"]{animation:scr-up-in 480ms var(--ease) both}
+#app.vfade[data-dir="down"]{animation:scr-down-in 460ms var(--ease) both}
+@keyframes scr-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes scr-push-in{from{transform:translate3d(100%,0,0);box-shadow:-12px 0 30px rgba(0,0,0,.28)}to{transform:none;box-shadow:0 0 0 rgba(0,0,0,0)}}
+@keyframes scr-pop-in{from{transform:translate3d(-28%,0,0)}to{transform:none}}
+@keyframes scr-up-in{from{transform:translate3d(0,100%,0);box-shadow:0 -12px 30px rgba(0,0,0,.3)}to{transform:none;box-shadow:0 0 0 rgba(0,0,0,0)}}
+@keyframes scr-down-in{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
+/* the screen underneath comes back out of a dim */
+#app.vfade[data-dir="pop"]::after,#app.vfade[data-dir="down"]::after{
+  content:'';position:absolute;inset:0;background:#000;pointer-events:none;z-index:5;animation:scr-dim-out 460ms var(--ease) both}
+@keyframes scr-dim-out{from{opacity:.24}to{opacity:0}}
+
 .screen-ghost{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
-.screen-ghost>#app{position:absolute;inset-inline:0;animation:scr-out-l 220ms var(--ease) both}
-.screen-ghost[data-dir="back"]>#app,.screen-ghost[data-dir="pop"]>#app{animation-name:scr-out-r}
+.screen-ghost>#app{position:absolute;inset-inline:0;z-index:auto;animation-duration:460ms;animation-timing-function:var(--ease);animation-fill-mode:both}
 .screen-ghost *{pointer-events:none;animation:none!important}
-@keyframes scr-out-l{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(-24px,0,0)}}
-@keyframes scr-out-r{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(24px,0,0)}}
+.screen-ghost[data-dir="tab"]>#app{animation-name:scr-fade-out;animation-duration:180ms;animation-timing-function:ease-in}
+.screen-ghost[data-dir="push"]>#app{animation-name:scr-push-out}
+.screen-ghost[data-dir="up"]>#app{animation-name:scr-push-under;animation-duration:480ms}
+.screen-ghost[data-dir="pop"],.screen-ghost[data-dir="down"]{z-index:42}
+.screen-ghost[data-dir="pop"]>#app{animation-name:scr-pop-out}
+.screen-ghost[data-dir="down"]>#app{animation-name:scr-down-out}
+/* a dim over the screen that stays beneath */
+.screen-ghost[data-dir="push"]::after,.screen-ghost[data-dir="up"]::after{
+  content:'';position:absolute;inset:0;background:#000;opacity:0;animation:scr-dim-in 460ms var(--ease) both}
+@keyframes scr-fade-out{from{opacity:1}to{opacity:0}}
+@keyframes scr-push-out{from{transform:none}to{transform:translate3d(-28%,0,0)}}
+@keyframes scr-push-under{from{transform:none}to{transform:scale(.95)}}
+@keyframes scr-pop-out{from{transform:none;box-shadow:-12px 0 30px rgba(0,0,0,.28)}to{transform:translate3d(100%,0,0);box-shadow:-12px 0 30px rgba(0,0,0,0)}}
+@keyframes scr-down-out{from{transform:none;box-shadow:0 -12px 30px rgba(0,0,0,.3)}to{transform:translate3d(0,100%,0)}}
+@keyframes scr-dim-in{from{opacity:0}to{opacity:.24}}
 /* The cards of a screen arrive one after the other instead of all at once. Only the first few,
    so a long screen is not still animating when you start to scroll. */
 #app.vfade .narrow>.card,#app.vfade .narrow>.hdr{animation:cardin 360ms var(--ease) both}

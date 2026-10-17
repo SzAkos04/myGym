@@ -23,7 +23,7 @@ export default function ScreenGhost() {
       copy.style.top = -window.scrollY + 'px'     // where the page was scrolled to when it was left
       wrap.appendChild(copy)
       document.body.appendChild(wrap)
-      setTimeout(() => wrap.remove(), 260)
+      setTimeout(() => wrap.remove(), 560)
     }
   }, [])
   return <i ref={ref} hidden />
