@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest'
-import { installViewportGuard, realign, realignPinned, viewportDisplacement, keyboardOpen } from './viewport-guard.js'
+import { installViewportGuard, realign, realignPinned, viewportDisplacement, keyboardOpen, atScrollEnd } from './viewport-guard.js'
 
 function fakeWindow({ innerHeight = 800, vvHeight = 800, offsetTop = 0, pageTop = 0, scrollY = 0, active = null, bodyStyle = {} } = {}) {
   const listeners = {}
@@ -109,5 +109,26 @@ describe('viewport guard', () => {
     w.fire(w.visualViewport, 'scroll')
     expect(w.scrollTo).not.toHaveBeenCalled()
     expect(typeof installViewportGuard({ visualViewport: null, document: {} })).toBe('function')
+  })
+
+  it('leaves the page alone while it bounces at its end, and still fixes a displaced top', () => {
+    // scrollHeight 2000 in an 800px window: the end is at 1200. Past it, the visual viewport outruns scrollY.
+    const bottom = fakeWindow({ scrollY: 1200, pageTop: 1260 })
+    bottom.document.documentElement = { scrollHeight: 2000 }
+    expect(atScrollEnd(bottom)).toBe(true)
+    installViewportGuard(bottom)
+    bottom.fire(bottom.visualViewport, 'scroll')
+    expect(bottom.scrollTo).not.toHaveBeenCalled()
+
+    const top = fakeWindow({ scrollY: 0, offsetTop: 190 })
+    top.document.documentElement = { scrollHeight: 2000 }
+    expect(atScrollEnd(top)).toBe(false)
+    installViewportGuard(top)
+    top.fire(top.visualViewport, 'scroll')
+    expect(top.scrollTo).toHaveBeenCalledWith(0, 0)
+  })
+
+  it('does not call a page with no measurable height the end of it', () => {
+    expect(atScrollEnd(fakeWindow())).toBe(false)
   })
 })

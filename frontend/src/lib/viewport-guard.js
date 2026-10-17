@@ -33,6 +33,18 @@ export function keyboardOpen(win = window) {
   return (win.innerHeight - vv.height) > KEYBOARD_MIN_PX
 }
 
+/**
+ * Whether the page is scrolled to (or past) its end. At that end iOS lets the page stretch and
+ * settle back, and while it stretches the visual viewport reads as "displaced" (its page-top
+ * outruns scrollY), which looked like the keyboard's leftover offset and had the page snapped
+ * back mid-bounce. A scroll event down there is the bounce, never the keyboard.
+ */
+export function atScrollEnd(win = window) {
+  const root = win.document?.documentElement
+  if (!root || !(root.scrollHeight > 0)) return false
+  return (win.scrollY || 0) >= root.scrollHeight - win.innerHeight - 1
+}
+
 /** Realign the viewports if iOS left them apart. Returns true when a correction was issued. */
 export function realign(win = window) {
   if (keyboardOpen(win)) return false
@@ -84,7 +96,7 @@ export function installViewportGuard(win = window) {
     if (wasOpen && !open) settle()
     wasOpen = open
   }
-  const onScroll = () => { if (!wasOpen) realign(win) }
+  const onScroll = () => { if (!wasOpen && !atScrollEnd(win)) realign(win) }
   const onFocusOut = e => { if (isText(e.target)) settle() }
 
   vv.addEventListener('resize', onResize)
