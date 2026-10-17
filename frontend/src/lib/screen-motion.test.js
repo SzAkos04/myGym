@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture, markGesture, takeGesture } from './screen-motion.js'
+import { tabIndexOf, motionDir, depthOf, isBrowserBackGesture, markGesture, takeGesture, isTabSwitch } from './screen-motion.js'
 
 describe('tabIndexOf', () => {
   it('puts the sub-screens under the tab the bar highlights for them', () => {
@@ -84,5 +84,19 @@ describe('the back-gesture mark', () => {
     markGesture()
     expect(takeGesture()).toBe(true)
     expect(takeGesture()).toBe(false)
+  })
+})
+
+describe('isTabSwitch', () => {
+  it('is a move between two tabs\' own screens, which has no step back', () => {
+    expect(isTabSwitch('/home', '/plan')).toBe(true)
+    expect(isTabSwitch('/stats', '/library')).toBe(true)
+  })
+  it('is not a move into or out of a deeper screen, nor to the same one', () => {
+    expect(isTabSwitch('/home', '/settings')).toBe(false)
+    expect(isTabSwitch('/settings', '/home')).toBe(false)
+    expect(isTabSwitch('/history', '/stats/')).toBe(false)
+    expect(isTabSwitch('/home', '/home')).toBe(false)
+    expect(isTabSwitch(null, '/home')).toBe(false)
   })
 })

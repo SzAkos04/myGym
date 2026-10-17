@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { isIosApp, markGesture, takeGesture } from '../lib/screen-motion.js'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { isIosApp, markGesture, takeGesture, depthOf } from '../lib/screen-motion.js'
 import { getSnapshot, previousPath, entryCount } from '../lib/screen-snapshots.js'
 import { EDGE, progressOf, shouldComplete, underShift, dimAt } from '../lib/edge-swipe.js'
 
@@ -10,11 +10,14 @@ import { EDGE, progressOf, shouldComplete, underShift, dimAt } from '../lib/edge
 // the edge is taken here: the screen follows the finger, a copy of the previous screen kept as it was left (lib/screen-snapshots.js)
 // drifts in beneath it, and on release it either goes back one step or springs back.
 //
-// It only starts when there is a step back, a copy of that screen to show and no sheet open. The
+// It only starts from a screen opened from another one (never from a tab's own screen: switching tabs is
+// not a step the user can undo with a swipe), when there is a step back, a copy of that screen to show
+// and no sheet open. The
 // browser has no earlier entry of its own in this app (components/ViewRouter.jsx), so the system's
 // edge swipe has nothing to act on and this is the only gesture.
 export default function EdgeSwipeBack() {
   const nav = useNavigate()
+  const { pathname } = useLocation()
   useEffect(() => {
     if (!isIosApp()) return
     let g = null
@@ -45,7 +48,8 @@ export default function EdgeSwipeBack() {
       if (g || e.touches.length !== 1) return
       const t = e.touches[0]
       if (t.clientX > EDGE) return
-      if (entryCount() <= 0) return
+      // Only from a screen that was opened from another one: a tab's own screen has nothing behind it.
+      if (depthOf(pathname) <= 0 || entryCount() <= 0) return
       if (document.body.style.position === 'fixed' || document.getElementById('modal-root')?.classList.contains('open')) return
       const snap = getSnapshot(previousPath())
       const app = live()
@@ -99,6 +103,6 @@ export default function EdgeSwipeBack() {
       window.removeEventListener('touchcancel', end)
       done()
     }
-  }, [nav])
+  }, [nav, pathname])
   return null
 }

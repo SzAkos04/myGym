@@ -26,6 +26,9 @@ export function depthOf(pathname) {
   return segs.length
 }
 
+/** Moving from one tab's own screen to another's: no step is added to the history, a tab bar has no "back". */
+export const isTabSwitch = (prev, next) => !!prev && !!next && prev !== next && depthOf(prev) === 0 && depthOf(next) === 0
+
 /**
  * How a screen change should look, the way iOS does it:
  *   'tab'  between two bottom tabs: a quick cross-fade, no sideways slide (a tab bar never slides);

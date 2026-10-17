@@ -28,7 +28,7 @@ beforeEach(() => {
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
-  act(() => root.render(<MemoryRouter><EdgeSwipeBack /></MemoryRouter>))
+  act(() => root.render(<MemoryRouter initialEntries={['/settings/sounds']}><EdgeSwipeBack /></MemoryRouter>))
 })
 afterEach(() => { act(() => root.unmount()); document.body.innerHTML = '' })
 
@@ -65,5 +65,13 @@ describe('swipe back from the left edge', () => {
     expect(document.querySelector('.screen-under')).toBeNull()
     expect(document.getElementById('app').style.transform).toBe('')
     vi.useRealTimers()
+  })
+
+  it('does not start on a tab\'s own screen, where there is nothing to go back to', () => {
+    act(() => root.render(<MemoryRouter key="plan" initialEntries={['/plan']}><EdgeSwipeBack /></MemoryRouter>))
+    const copy = document.createElement('div'); saveSnapshot('/home', copy)
+    pushEntry({ path: '/home', loc: { pathname: '/home', search: '', hash: '', state: null } })
+    expect(touch('touchstart', 8).defaultPrevented).toBe(false)
+    expect(document.querySelector('.screen-under')).toBeNull()
   })
 })

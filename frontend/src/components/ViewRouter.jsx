@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Router, UNSAFE_createHashHistory as createHashHistory } from 'react-router-dom'
-import { motionDir, isBrowserBackGesture, markGesture, isIosApp } from '../lib/screen-motion.js'
+import { motionDir, isBrowserBackGesture, markGesture, isIosApp, isTabSwitch } from '../lib/screen-motion.js'
 import { pushEntry, popEntries } from '../lib/screen-snapshots.js'
 
 // A hash router whose screen changes are ours to animate. The declarative HashRouter has no hook for
@@ -38,7 +38,9 @@ export default function ViewRouter({ children }) {
     if (isIosApp()) {
       const replace = h.replace.bind(h)
       h.push = (to, state) => {
-        pushEntry({ path: h.location.pathname, loc: h.location })
+        // Between the tabs' own screens nothing is added: a tab bar has no step back, and neither may the swipe.
+        const next = typeof to === 'string' ? to.split(/[?#]/)[0] : to?.pathname
+        if (!isTabSwitch(h.location.pathname, next)) pushEntry({ path: h.location.pathname, loc: h.location })
         logical.current = 'PUSH'
         replace(to, state)
       }
