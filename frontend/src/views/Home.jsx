@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore.js'
 import { effectiveRoutines, effectiveRoutineIds, nextTrainingDay, streakWeeks, lastBW, setsDoneActive } from '../lib/history.js'
 import { fmtNum, fmtDate, todayISO, isoOf, weekStartOf, weekDayOffset, DAYS, DAYN } from '../lib/format.js'
 import { t, tn, dateLocale } from '../lib/i18n.js'
-import { bwSheet, goalSheet, dayOverrideSheet, calendarSheet, startFlow, starterPlanSheet, bwDeltaColor, weighInsSheet } from '../sheets.jsx'
+import { bwSheet, goalSheet, dayOverrideSheet, calendarSheet, startFlow, starterPlanSheet, bwDeltaColor, weighInsSheet, workoutDetailSheet, displayNameSheet } from '../sheets.jsx'
 import LineChart from '../components/LineChart.jsx'
 import Icon from '../components/Icon.jsx'
 import QueueRow from '../components/QueueRow.jsx'
@@ -15,6 +15,7 @@ import { Button } from '../components/ui.jsx'
 import { tappable } from '../lib/use-sheet-keyboard.js'
 import { glyphOf } from '../lib/glyphs.js'
 import { dayNoteOf } from '../lib/day-notes.js'
+import { weeklyWorkingSets, lastWorkoutSummary, todaySummary } from '../lib/home-stats.js'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -92,6 +93,18 @@ export default function Home() {
   // The streak card's fraction: this calendar week's workouts over the weekdays with a plan, or,
   // in a coach week, the queue's sessions and your own days together (lib/queue.js weekTally).
   const { done: doneThisWeek, planned: plannedPerWeek } = weekTally(S, todayISO())
+  // This calendar week, whatever week the strip above is showing: the streak card, the set counts
+  // and the last-week comparison all talk about now.
+  const curStart = new Date(today)
+  curStart.setDate(today.getDate() - weekDayOffset(today.getDay(), ws))
+  const curDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(curStart); d.setDate(curStart.getDate() + i); return d })
+  const sets = weeklyWorkingSets(S.workouts, isoOf(curDays[0]), isoOf(curDays[6]))
+  const prevFrom = new Date(curStart); prevFrom.setDate(curStart.getDate() - 7)
+  const prevTo = new Date(curStart); prevTo.setDate(curStart.getDate() - 1)
+  const setsDelta = sets.total - weeklyWorkingSets(S.workouts, isoOf(prevFrom), isoOf(prevTo)).total
+  const lastW = lastWorkoutSummary(S.workouts)
+  const sum = todaySummary(S.workouts, todayRoutines, todayISO())
+  const doneSum = doneToday ? lastWorkoutSummary([doneToday]) : null
   const bwPoints = S.bodyweight.slice(-30).map(b => ({ t: b.t || new Date(b.d).getTime(), y: b.w, d: b.d }))
 
   // today's session shown right under the week strip
@@ -102,7 +115,7 @@ export default function Home() {
 
   return <div className="narrow">
     <div className="hdr">
-      <div><h1>{user ? t('Hi {0}', user.name) : 'myGym'}</h1><div className="sub">{today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
+      <div><h1 {...(user ? { ...tappable(displayNameSheet), title: t('Display name') } : {})}>{user ? t('Hi {0}', (S.displayName || '').trim() || user.name) : 'myGym'}</h1><div className="sub">{today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
       <button className="iconbtn" onClick={() => nav('/settings')} aria-label={trouble ? t('Settings') + ', ' + t('Connection problem') : t('Settings')}><Icon name="gear" />{trouble && <span className="tab-dot" aria-hidden="true" />}</button>
     </div>
 
@@ -126,24 +139,31 @@ export default function Home() {
           routine name behind a green Start tag and read as still outstanding (issue #4).
           An in-progress session still wins — that one is happening right now. Tapping the
           row keeps working, so a second session in one day is a tap away, just not urged. */}
-      <div className="today-row" {...tappable(onToday)}>
-        <div className="row" style={{ gap: 9, minWidth: 0 }}>
-          <span className="lrow-i" style={{ background: S.active ? 'var(--orange)' : doneToday ? 'var(--surface-3)' : routine ? 'var(--acc)' : 'var(--surface-3)' }}>
-            <Icon name={S.active ? (editingSaved ? 'pencil' : 'play') : doneToday ? 'checkCircle' : routine ? glyphOf(routine.emoji) : 'moon'}
-              style={doneToday && !S.active ? { color: 'var(--green)' } : undefined} />
-          </span>
+      <div className={'today-row hero' + (doneToday && !S.active ? ' is-done' : '')} {...tappable(onToday)}>
+        <div className="tr-top">
           <div style={{ minWidth: 0 }}>
-            <div className="lbl2">{t('Today')}</div>
+            <div className="lbl2">{doneToday && !S.active ? t('Done today') : t('Today')}</div>
             <div className="ttl">{S.active ? (editingSaved ? S.active.name : t('{0} (in progress)', S.active.name))
               : doneToday ? (doneToday.name ? t('{0} (done)', doneToday.name) : t('Workout done'))
               : routine ? todayName : t('Rest day')}{todayOvr && routine && !doneToday ? ' · ' + t('rescheduled') : ''}</div>
             {next && !doneToday && <div className="ss">{t('Next session: {0}, {1}', t(DAYN[next.weekday]), next.routine.name)}</div>}
+            {routine && !S.active && !doneToday && sum.exercises > 0 && <div className="ss meta">
+              <b>{tn('{0} exercise', '{0} exercises', sum.exercises)}</b>
+              {sum.estMin ? ' · ' + t('about {0} min', sum.estMin) : ''}
+              {sum.daysAgo != null ? ' · ' + (sum.daysAgo === 0 ? t('done earlier today') : tn('last done {0} day ago', 'last done {0} days ago', sum.daysAgo)) : ''}
+            </div>}
           </div>
+          {S.active ? <span className="tag" style={{ color: 'var(--orange)', background: 'color-mix(in srgb,var(--orange) 16%,transparent)' }}>{editingSaved ? t('Edit') : t('Resume')}</span>
+            : doneToday ? <span className="hero-check"><Icon name="check" /><span className="tag">{t('Done')}</span></span>
+            : routine ? <span className="hero-play"><Icon name="play" /><span className="tag">{t('Start')}</span></span>
+            : <Icon name="plus" className="chev" />}
         </div>
-        {S.active ? <span className="tag" style={{ color: 'var(--orange)', background: 'color-mix(in srgb,var(--orange) 16%,transparent)' }}>{editingSaved ? t('Edit') : t('Resume')}</span>
-          : doneToday ? <span className="tag" style={{ color: 'var(--green)', background: 'color-mix(in srgb,var(--green) 16%,transparent)' }}>{t('Done')}</span>
-          : routine ? <span className="tag acc">{t('Start')}</span>
-          : <Icon name="plus" className="chev" />}
+        {routine && !S.active && !doneToday && sum.muscles.length > 0 && <div className="hero-muscles">{sum.muscles.map(m => <span key={m}>{t(m)}</span>)}</div>}
+        {doneToday && !S.active && doneSum && <div className="hero-stats">
+          {doneSum.mins > 0 && <div><b>{t('{0} min', doneSum.mins)}</b><span>{t('Duration')}</span></div>}
+          <div><b>{fmtNum(doneSum.volume)}</b><span>{S.unit} · {t('Volume')}</span></div>
+          <div><b className={doneSum.prs ? 'pr' : ''}>{doneSum.prs}</b><span>{t('Records')}</span></div>
+        </div>}
       </div>
       {/* The row above starts today's plan in one tap, and so does the Start button in the tab
           bar — which is the whole problem when you want something else. Both jump straight into
@@ -187,6 +207,53 @@ export default function Home() {
       </div>
     )}
 
+    <div className="card tappable streak" style={{ cursor: 'pointer' }} {...tappable(() => calendarSheet())}>
+      <div className="row between">
+        <div>
+          <div className="row" style={{ gap: 7, fontSize: 22, fontWeight: 600, letterSpacing: '-.021em' }}>
+            <Icon name="flame" style={{ color: 'var(--orange)' }} />
+            {t('{0} week streak', streakWeeks(S))}
+          </div>
+          <div className="muted small" style={{ marginTop: 2 }}>{doneThisWeek}{plannedPerWeek ? ' / ' + plannedPerWeek : ''} {t('this week')} · {tn('{0} workout total', '{0} workouts total', S.workouts.length)}</div>
+        </div>
+        <Icon name="chevronRight" className="chev" style={{ fontSize: 20 }} />
+      </div>
+      <div className="streak-week" aria-hidden="true">
+        {curDays.map((d, i) => {
+          const iso = isoOf(d)
+          return <div key={i} className={(doneDays.has(iso) ? 'd' : '') + (iso === todayISO() ? ' t' : '')}>
+            <i>{doneDays.has(iso) ? <Icon name="check" /> : null}</i><span>{t(DAYS[d.getDay()])}</span>
+          </div>
+        })}
+      </div>
+    </div>
+
+    {sets.total > 0 && <div className="card week-sets">
+      <div className="row between"><h2 style={{ margin: 0 }}>{t('Working sets this week')}</h2>
+        <span className="small muted">{tn('{0} set', '{0} sets', sets.total)}{setsDelta !== 0 && <> <span className={setsDelta > 0 ? 'delta-up' : 'dim'}>{setsDelta > 0 ? '+' : '−'}{Math.abs(setsDelta)}</span></>}</span></div>
+      <div className="wsets">
+        {sets.groups.map(g => <div key={g.key} className="wset">
+          <span>{t(g.name)}</span>
+          <div className="blocks" aria-hidden="true">{Array.from({ length: Math.min(g.sets, 20) }, (_, i) => <i key={i} />)}{g.sets > 20 && <em>+</em>}</div>
+          <b>{g.sets}</b>
+        </div>)}
+      </div>
+    </div>}
+
+    {lastW && <div className="card tappable last-workout" style={{ cursor: 'pointer' }} {...tappable(() => { const w = S.workouts.filter(x => x.d === lastW.d).at(-1); if (w) workoutDetailSheet(w) })}>
+      <div className="row between">
+        <div className="row" style={{ gap: 11, minWidth: 0 }}>
+          <span className="lrow-i" style={{ background: 'var(--surface-3)' }}><Icon name="history" /></span>
+          <div style={{ minWidth: 0 }}>
+            <div className="lbl2">{t('Last workout')}</div>
+            <div className="ttl">{lastW.name || t('Workout')}</div>
+            <div className="ss">{[fmtDate(lastW.d, true), lastW.mins ? t('{0} min', lastW.mins) : null, tn('{0} set', '{0} sets', lastW.sets)].filter(Boolean).join(' · ')}{lastW.prs > 0 && <> · <span className="pr-text">★ {lastW.prs} PR</span></>}</div>
+          </div>
+        </div>
+        <Icon name="chevronRight" className="chev" />
+      </div>
+    </div>}
+
     {S.showWeightCard !== false && <div className="card">
       <div className="row between bw-head" style={{ marginBottom: 6 }}>
         <h2 style={{ margin: 0 }}>{t('Body weight')}</h2>
@@ -222,18 +289,5 @@ export default function Home() {
         ? t('No weigh-ins yet. Log your weight to start the curve.')
         : t("No weigh-ins yet. Log your weight to start the curve (we also ask before every workout).")}</div>}
     </div>}
-
-    <div className="card tappable" style={{ cursor: 'pointer' }} {...tappable(() => calendarSheet())}>
-      <div className="row between">
-        <div>
-          <div className="row" style={{ gap: 7, fontSize: 22, fontWeight: 600, letterSpacing: '-.021em' }}>
-            <Icon name="flame" style={{ color: 'var(--orange)' }} />
-            {t('{0} week streak', streakWeeks(S))}
-          </div>
-          <div className="muted small" style={{ marginTop: 2 }}>{doneThisWeek}{plannedPerWeek ? ' / ' + plannedPerWeek : ''} {t('this week')} · {tn('{0} workout total', '{0} workouts total', S.workouts.length)}</div>
-        </div>
-        <Icon name="calendar" className="chev" style={{ fontSize: 20 }} />
-      </div>
-    </div>
   </div>
 }

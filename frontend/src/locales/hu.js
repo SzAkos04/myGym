@@ -2269,4 +2269,15 @@ export default {
   'Ember': 'Parázs',
   'Volt': 'Volt',
   'Ice': 'Jég',
+  // --- home redesign ---
+  'Done today': 'Ma kész',
+  'about {0} min': 'kb. {0} perc',
+  'done earlier today': 'ma már edzettél',
+  'Records': 'Rekordok',
+  'Working sets this week': 'Munkaszettek ezen a héten',
+  'Display name': 'Megjelenítendő név',
+  'What Home calls you. Your account name, {0}, stays as it is.': 'Így szólít meg a főoldal. A fiókneved ({0}) nem változik.',
+  'What Home calls you.': 'Így szólít meg a főoldal.',
+  'last done {0} day ago': 'utoljára {0} napja',
+  'last done {0} days ago': 'utoljára {0} napja',
 }

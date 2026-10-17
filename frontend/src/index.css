@@ -1906,6 +1906,59 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;
 }
 
+/* The hero: today's session as the card to press. The whole row starts it; the round play
+   button is only the cue, so there is one Start and not three. */
+.today-row.hero{
+  display:block;padding:16px;border-radius:var(--r-lg);
+  background:linear-gradient(155deg,var(--acc-soft),transparent 65%),var(--surface-2);
+  border:var(--hair) solid var(--acc-line);
+}
+.today-row.hero.is-done{background:var(--surface-2);border-color:var(--sep-op)}
+.today-row.hero .tr-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.today-row.hero .lbl2{color:var(--acc);font-weight:700;letter-spacing:.08em}
+.today-row.hero.is-done .lbl2{color:var(--green)}
+.today-row.hero .ttl{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-top:4px}
+.today-row.hero .ss{color:var(--label-2);font-size:14px;margin-top:4px}
+.today-row.hero .ss.meta b{color:var(--label);font-weight:600}
+.hero-play,.hero-check{flex:none;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+.hero-play{background:var(--acc);color:var(--on-acc);box-shadow:0 8px 22px -6px color-mix(in srgb,var(--acc) 55%,transparent)}
+.hero-play,.hero-check{position:relative}
+/* the state word stays for a screen reader; the glyph is what is seen */
+.hero-play .tag,.hero-check .tag{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;padding:0;border:0;background:none}
+.hero-play .icn{--icon-stroke:2.2}
+.hero-check{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}
+.hero-check .icn{--icon-stroke:2.6}
+.hero-muscles{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.hero-muscles span{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface-3);color:var(--label-2)}
+.hero-stats{display:flex;gap:8px;margin-top:12px}
+.hero-stats>div{flex:1;min-width:0;padding:9px 10px;border-radius:14px;background:var(--surface-3)}
+.hero-stats b{display:block;font-size:17px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.hero-stats span{font-size:11px;color:var(--label-2)}
+.hero-stats b.pr{color:var(--yellow)}
+.pr-text{color:var(--yellow);font-weight:600}
+.delta-up{color:var(--green);font-weight:600}
+
+/* The rotation row, tighter: pills, and the state words a step up in contrast. */
+.queue .chip{font-size:13px;padding:5px 11px}
+.queue .chip .qstate{color:var(--label-2)}
+.queue .queue-status{font-size:13px;color:var(--label-2)}
+
+/* Streak card: this week's days. */
+.streak-week{display:flex;justify-content:space-between;margin-top:12px}
+.streak-week>div{width:38px;text-align:center;font-size:11px;color:var(--label-3)}
+.streak-week i{display:flex;align-items:center;justify-content:center;height:34px;border-radius:11px;background:var(--surface-2);margin-bottom:4px;font-style:normal;font-size:16px;color:var(--on-acc)}
+.streak-week .d i{background:var(--acc)}
+.streak-week .t i{box-shadow:inset 0 0 0 1.5px var(--acc)}
+.streak-week .t{color:var(--label)}
+
+/* Working sets this week: one block per set. */
+.wsets{margin-top:12px;display:grid;gap:10px}
+.wset{display:grid;grid-template-columns:84px 1fr 28px;gap:8px;align-items:center;font-size:13px;color:var(--label-2)}
+.wset .blocks{display:flex;gap:3px;min-width:0}
+.wset .blocks i{flex:1;max-width:11px;height:16px;border-radius:4px;background:var(--acc)}
+.wset .blocks em{font-style:normal;font-size:12px;color:var(--label-2);margin-left:2px;line-height:16px}
+.wset b{text-align:end;font-size:15px;font-weight:800;color:var(--label);font-variant-numeric:tabular-nums}
+
 /* Only where a pointer really hovers — on a phone :hover sticks to the row after the tap.
    Lighter than :active, which goes all the way to --surface-3, so the two stay distinct. */
 @media (hover:hover){

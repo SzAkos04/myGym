@@ -1314,6 +1314,27 @@ export function replaceCustomEx(ex, afterReplace) {
   }, { title: t('Replace with…'), like: ex.id })
 }
 
+// What Home calls you: a name of your own, kept apart from the account name the sign-in uses.
+function DisplayNameForm({ close }) {
+  const st = useStore(s => s.S)
+  const user = useStore(s => s.user)
+  const ref = useRef(null)
+  const save = () => {
+    const n = (ref.current?.value || '').trim().slice(0, 40)
+    update(s => { if (n) s.displayName = n; else delete s.displayName })
+    close()
+    toast(t('Saved'))
+  }
+  return <>
+    <h3>{t('Display name')}</h3>
+    <div className="muted small" style={{ marginBottom: 12 }}>{user?.name ? t('What Home calls you. Your account name, {0}, stays as it is.', user.name) : t('What Home calls you.')}</div>
+    <TextField ref={ref} defaultValue={st.displayName || ''} placeholder={user?.name || t('Your name')} maxLength={40}
+      onKeyDown={e => { if (e.key === 'Enter') save() }} />
+    <div style={{ height: 12 }} /><Button variant="primary" onClick={save}>{t('Save')}</Button>
+  </>
+}
+export const displayNameSheet = () => ui().openSheet(close => <DisplayNameForm close={close} />)
+
 /* ============================ exercise picker ============================ */
 // Exercises already used in your routines or past workouts (for the "Chosen" filter + a marker).
 function usageMap(st) {

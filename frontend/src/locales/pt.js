@@ -2266,4 +2266,15 @@ export default {
   'Ember': 'Brasa',
   'Volt': 'Volt',
   'Ice': 'Gelo',
+  // --- home redesign ---
+  'Done today': 'Concluído hoje',
+  'about {0} min': 'cerca de {0} min',
+  'done earlier today': 'já treinou hoje',
+  'Records': 'Recordes',
+  'Working sets this week': 'Séries de trabalho esta semana',
+  'Display name': 'Nome a mostrar',
+  'What Home calls you. Your account name, {0}, stays as it is.': 'Como o início o trata. O nome da sua conta, {0}, não muda.',
+  'What Home calls you.': 'Como o início o trata.',
+  'last done {0} day ago': 'último há {0} dia',
+  'last done {0} days ago': 'último há {0} dias',
 }

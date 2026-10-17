@@ -2321,4 +2321,15 @@ export default {
   'Ember': 'Ember',
   'Volt': 'Volt',
   'Ice': 'Ice',
+  // --- home redesign ---
+  'Done today': 'Done today',
+  'about {0} min': 'about {0} min',
+  'done earlier today': 'done earlier today',
+  'Records': 'Records',
+  'Working sets this week': 'Working sets this week',
+  'Display name': 'Display name',
+  'What Home calls you. Your account name, {0}, stays as it is.': 'What Home calls you. Your account name, {0}, stays as it is.',
+  'What Home calls you.': 'What Home calls you.',
+  'last done {0} day ago': 'last done {0} day ago',
+  'last done {0} days ago': 'last done {0} days ago',
 }
