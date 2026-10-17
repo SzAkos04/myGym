@@ -61,6 +61,11 @@ export function isBrowserBackGesture({ action, ios, standalone, sinceOwnMs }) {
   return action === 'POP' && !!ios && !!standalone && !(sinceOwnMs < 1000)
 }
 
+/** The installed iOS app (home-screen web app): the only place the system has an edge swipe to animate. */
+export const isIosApp = () => typeof navigator !== 'undefined' && typeof window !== 'undefined'
+  && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+  && !!(window.navigator.standalone || window.matchMedia?.('(display-mode: standalone)').matches)
+
 // Whether the screen change now starting is the browser's own back gesture (see isBrowserBackGesture):
 // ViewRouter marks it, the Shell takes the mark when it works out the direction, so the DOM animation
 // is skipped for it too.

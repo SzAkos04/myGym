@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Router, UNSAFE_createHashHistory as createHashHistory } from 'react-router-dom'
 import { motionDir, isBrowserBackGesture, markGesture } from '../lib/screen-motion.js'
+import { recordPath } from '../lib/screen-snapshots.js'
 
 // A hash router whose screen changes run inside a View Transition (document.startViewTransition),
 // so the browser snapshots the old screen and the new one and animates between the two on the GPU,
@@ -36,6 +37,8 @@ export default function ViewRouter({ children }) {
   const [state, setState] = useState({ action: history.action, location: history.location })
   const last = useRef(history.location.pathname)
   const ownPopAt = useRef(0)
+  const recorded = useRef(false)
+  if (!recorded.current) { recorded.current = true; recordPath(window.history.state?.idx || 0, history.location.pathname) }
 
   useEffect(() => {
     if (canTransition()) document.documentElement.dataset.vtOk = '1'
@@ -45,6 +48,8 @@ export default function ViewRouter({ children }) {
   useLayoutEffect(() => history.listen(update => {
     const prev = last.current
     last.current = update.location.pathname
+    // which screen sits at which history entry, for the swipe back (lib/screen-snapshots.js)
+    if (update.action !== 'POP') recordPath(window.history.state?.idx || 0, update.location.pathname)
     // A redirect (REPLACE) is not a screen the user went to; a change of query only is not a new screen.
     const dir = update.action === 'REPLACE' ? 'none' : motionDir(prev, update.location.pathname, update.action)
     const gesture = isBrowserBackGesture({

@@ -17,6 +17,7 @@ import { installViewportGuard } from './lib/viewport-guard.js'
 import { motionDir, setMotion, takeGesture } from './lib/screen-motion.js'
 import ScreenGhost from './components/ScreenGhost.jsx'
 import ViewRouter from './components/ViewRouter.jsx'
+import EdgeSwipeBack from './components/EdgeSwipeBack.jsx'
 import { installChipDrag } from './lib/hchips.js'
 import { syncPushSubscription } from './lib/push.js'
 import { MOBILE } from './lib/mobile.js'
@@ -212,7 +213,7 @@ function Shell() {
       {/* keyed on the route: a view that throws is contained, and switching tabs
           re-mounts the boundary, so the tab bar is always a way out */}
       <div id="app" className="vfade" data-dir={motion.current.dir} key={loc.pathname}>
-        <ScreenGhost />
+        <ScreenGhost path={loc.pathname} />
         <ErrorBoundary>
           {!authed ? <Login /> : needsMobileOnboarding ? <MobileOnboarding /> : (
             <Routes>
@@ -249,6 +250,7 @@ function Shell() {
           would ride along with the page for the length of it. Decides for itself when to show —
           including on the sign-in screen, when the server has just ended the session. */}
       <SyncBanner />
+      <EdgeSwipeBack />
       {!noTabs && <TabBar onStart={startFlow} />}
       <RestTimer />
       <Modals />

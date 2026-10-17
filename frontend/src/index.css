@@ -256,6 +256,12 @@ html[data-vt="down"]::view-transition-new(root){animation-name:vt-down-new}
 @keyframes vt-down-old{from{transform:none}to{transform:translate3d(0,100%,0)}}
 @keyframes vt-down-new{from{transform:scale(.94);filter:brightness(.7)}to{transform:none;filter:none}}
 
+/* The screen under the one the swipe back drags (components/EdgeSwipeBack.jsx): the previous screen,
+   dimmed, drifting in as the top one leaves. */
+.screen-under{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none;background:var(--bg)}
+.screen-under>#app{position:absolute;inset-inline:0;z-index:auto;animation:none!important}
+.screen-under *{animation:none!important;pointer-events:none}
+.screen-under::after{content:'';position:absolute;inset:0;background:#000;opacity:var(--dim,.24);pointer-events:none}
 .screen-ghost{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
 .screen-ghost>#app{position:absolute;inset-inline:0;z-index:auto;animation-duration:460ms;animation-timing-function:var(--ease);animation-fill-mode:both}
 .screen-ghost *{pointer-events:none;animation:none!important}
