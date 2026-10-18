@@ -1,3 +1,5 @@
+import { GUEST } from './fork-profile.js'   // myGym has no guest mode
+
 /**
  * Whether "Continue without account" may be offered, given the public config from /api/config.
  *
@@ -12,4 +14,4 @@
  * @param {{allow_guest?: boolean}|null|undefined} config Parsed /api/config body, or null.
  * @returns {boolean} true when the guest entrance may be shown and used.
  */
-export const guestAllowed = config => !(config && config.allow_guest === false)
+export const guestAllowed = config => GUEST && !(config && config.allow_guest === false)

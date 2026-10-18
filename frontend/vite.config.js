@@ -118,10 +118,44 @@ const packLangs = {
   }
 }
 
-export default defineConfig(({ command }) => ({
+// What myGym leaves out of openGym (src/lib/fork-profile.js). The code stays, so pulling upstream does not
+// conflict over it; the switches below take it off the screen, and Rollup drops what nothing reaches any
+// more. Tests keep everything on, so the upstream suites still cover the parts that are switched off here.
+const FORK_OFF = ['coach', 'checkin', 'android', 'guest']
+const FORK_HIDDEN_CATEGORIES = ['mobility', 'stretching', 'yoga', 'pilates', 'combat', 'rehab']
+const forkDefines = mode => {
+  const fork = mode !== 'test'
+  const on = f => String(!(fork && FORK_OFF.includes(f)))
+  return {
+    __MYGYM_COACH__: on('coach'), __MYGYM_CHECKIN__: on('checkin'), __MYGYM_ANDROID__: on('android'), __MYGYM_GUEST__: on('guest'),
+    __MYGYM_HIDDEN_CATEGORIES__: JSON.stringify(fork ? FORK_HIDDEN_CATEGORIES : []),
+  }
+}
+
+// The parts the switches above turn off that would still ship as chunks of their own, because something
+// can reach them with import(): the coach's on-phone engine and its canned demo (the coach screens are
+// gone), and the QR reader only the gym check-in used. In a myGym build they are empty modules, the way
+// packLangs empties the languages: nothing to download, nothing for the service worker to cache.
+const FORK_STUBS = [
+  [/\/src\/lib\/coach-local\.js$/, 'export {}'],
+  [/\/src\/lib\/coach-demo\.js$/, 'export {}'],
+  [/\/node_modules\/jsqr\//, 'export default function jsQR() { return null }'],
+]
+const forkStubs = {
+  name: 'mygym-fork-stubs',
+  apply: 'build',
+  enforce: 'pre',
+  load(id) {
+    const path = id.split('?')[0].replace(/\\/g, '/')
+    const hit = FORK_STUBS.find(([re]) => re.test(path))
+    return hit ? hit[1] : null
+  }
+}
+
+export default defineConfig(({ command, mode }) => ({
   // __APP_LANGS__ narrows the language picker (lib/i18n-core.js); in dev and tests it is null: everything.
-  define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_LANGS__: command === 'build' && appLangs ? JSON.stringify(appLangs) : 'null' },
-  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs],
+  define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_LANGS__: command === 'build' && appLangs ? JSON.stringify(appLangs) : 'null', ...forkDefines(mode) },
+  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs, forkStubs],
   base: './',
   server: {
     // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core

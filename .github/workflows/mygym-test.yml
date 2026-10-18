@@ -1,0 +1,65 @@
+# myGym: the whole test suite on every push to the fork's branch. Locally only the tests a change
+# reaches are run (frontend: npm run test:changed); the full suite needs more memory than the
+# machine it is developed on has. Its own file, not an edit to test.yml, so pulling upstream never
+# conflicts over it. The image builds of test.yml are left out: they test openGym's published images.
+name: myGym tests
+
+on:
+  push:
+    branches: [custom]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mygym-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # node:22-alpine in web/Dockerfile and api/Dockerfile: the tests run on what production runs.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm test
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - run: node scripts/check-locales.mjs
+        working-directory: frontend
+
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci --omit=optional
+        working-directory: api
+      - run: npm test
+        working-directory: api
+
+  mcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mcp/package-lock.json
+      - run: npm ci
+        working-directory: mcp
+      - run: npm test
+        working-directory: mcp

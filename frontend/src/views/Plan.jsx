@@ -19,6 +19,7 @@ import { glyphOf, DEFAULT_GLYPH } from '../lib/glyphs.js'
 import { DEMO } from '../lib/demo.js'
 import { MOBILE } from '../lib/mobile.js'
 import { coachAvailable } from '../lib/coach.js'
+import { COACH } from '../lib/fork-profile.js'
 import { queueOf, queueView } from '../lib/queue.js'
 import { deriveSessionName } from '../lib/session-merge.js'
 import { routineMuscles } from '../lib/home-stats.js'
@@ -140,7 +141,7 @@ export default function Plan() {
      loud, the last entry of the share menu too hidden). Gated by the same predicate every other
      Coach surface uses, so an instance without the feature sees exactly the header it would have
      without it. */
-  const showCoach = coachAvailable(config, user, { demo: DEMO, mobile: MOBILE, coachMode })
+  const showCoach = COACH && coachAvailable(config, user, { demo: DEMO, mobile: MOBILE, coachMode })
 
   // Share, print, import and starter plans: one menu behind the header button, so the
   // two views below are only about the plan itself.

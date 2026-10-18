@@ -2,6 +2,7 @@ import { EXDB, EXALIAS } from './exercises-data.js'
 import MUSCLE_MAP from './exercise-muscle-map.json' with { type: 'json' }
 import V13_IDS from './catalogue-v13-ids.json' with { type: 'json' }
 import { t, getVersion, exerciseNameSearchText } from './i18n-core.js'
+import { listedCatalogue } from './fork-profile.js'
 
 export { EXDB }
 
@@ -115,7 +116,9 @@ export function healCustomEx(list) {
   return changed ? out : list
 }
 // Full searchable catalogue — customs first so your own exercises are easy to find.
-export const allExercises = st => [...(st.customEx || []), ...CATALOGUE]
+// myGym lists no mobility, stretching, yoga, pilates, combat or rehab exercise it has not used (lib/fork-profile.js);
+// EXIDX still has every one, so history and imports resolve them all.
+export const allExercises = st => [...(st.customEx || []), ...listedCatalogue(CATALOGUE, st)]
 
 function searchableText(value) {
   if (Array.isArray(value)) return value.map(searchableText).join(' ')
