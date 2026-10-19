@@ -95,7 +95,7 @@ function CloudPanel({ anchor, st, line, view, user, status, close }) {
   }, [])
 
   const owed = typeof unsynced === 'function' ? unsynced() : { owed: false, count: 0 }
-  const waiting = !owed.owed ? '0' : owed.count != null ? String(owed.count) : '—'
+  const waiting = !owed.owed ? '0' : owed.count != null ? String(owed.count) : '–'
   const doIt = async fn => {
     if (working) return
     setWorking(true)
@@ -110,7 +110,7 @@ function CloudPanel({ anchor, st, line, view, user, status, close }) {
       <div className="sync-pop-h">{line}</div>
       {sync?.server && <div className="sync-pop-host">{hostOf(sync.server)}</div>}
       <dl>
-        <dt>{t('Last synced')}</dt><dd>{sync?.lastSynced ? fmtAgo(sync.lastSynced) : '—'}</dd>
+        <dt>{t('Last synced')}</dt><dd>{sync?.lastSynced ? fmtAgo(sync.lastSynced) : '–'}</dd>
         <dt>{t('Waiting changes')}</dt><dd>{waiting}</dd>
         <dt>{t('Response time')}</dt><dd>{ping == null ? '…' : ping === 'none' ? t('No answer') : fmtPing(ping)}</dd>
       </dl>

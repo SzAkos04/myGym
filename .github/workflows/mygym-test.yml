@@ -1,12 +1,12 @@
-# myGym: the whole test suite on every push to the fork's branch. Locally only the tests a change
-# reaches are run (frontend: npm run test:changed); the full suite needs more memory than the
-# machine it is developed on has. Its own file, not an edit to test.yml, so pulling upstream never
-# conflicts over it. The image builds of test.yml are left out: they test openGym's published images.
+# myGym: every test and check on every push, to any branch of the fork (dev as you work, custom
+# when it is merged). Locally only the tests a change reaches are run (frontend: npm run
+# test:changed); the full suite needs more memory than the machine it is developed on has.
+# Its own file, not an edit to test.yml, so pulling upstream never conflicts over it; the steps
+# are test.yml's, kept in step with it by hand when upstream adds a check.
 name: myGym tests
 
 on:
   push:
-    branches: [custom]
   workflow_dispatch:
 
 permissions:
@@ -31,9 +31,16 @@ jobs:
         working-directory: frontend
       - run: npm test
         working-directory: frontend
+      # A broken import or bad JSX fails the build long before any test covers it.
       - run: npm run build
         working-directory: frontend
       - run: node scripts/check-locales.mjs
+        working-directory: frontend
+      # Report-only upstream (a known backlog of untranslated strings): it lists, it does not fail.
+      - run: node scripts/check-source-strings.mjs
+        working-directory: frontend
+      # The fatigue model must never read higher after a rest day than before it.
+      - run: npm run test:fatigue-probe
         working-directory: frontend
 
   api:
@@ -44,11 +51,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: api/package-lock.json
+          cache-dependency-path: |
+            api/package-lock.json
+            package-lock.json
       - run: npm ci --omit=optional
         working-directory: api
       - run: npm test
         working-directory: api
+      # Generated and committed files that must match their sources.
+      - run: node scripts/build-coach-assets.mjs --check
+      - run: npm ci
+      - run: node scripts/build-api-docs.mjs --check
+      - run: node api/scripts/check-core-loadable.mjs
 
   mcp:
     runs-on: ubuntu-latest
@@ -63,3 +77,58 @@ jobs:
         working-directory: mcp
       - run: npm test
         working-directory: mcp
+      # vitest resolves Vite-only imports a bare node process cannot; this starts it the real way.
+      - run: npm run check:node-loadable
+        working-directory: mcp
+
+  # The api image the server builds (docker compose up --build, target default) has to boot, and
+  # the coach target has to carry its runtimes. Same assertions as test.yml's api-image job.
+  api-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --target default -t opengym-api:default ./api
+      - run: docker build --target coach   -t opengym-api:coach   ./api
+      - run: docker build -t opengym-api:published ./api
+
+      - name: the untargeted image has no AI runtime either
+        run: |
+          docker run --rm opengym-api:published node -e \
+            'import("@anthropic-ai/claude-agent-sdk").then(()=>{console.error("AI runtime present in the untargeted image");process.exit(1)},()=>process.exit(0))'
+          ! docker run --rm opengym-api:published codex --version
+          ! docker run --rm opengym-api:published bwrap --version
+
+      - name: the default image boots and serves, with no AI runtime in it
+        run: |
+          docker run -d --name api-default -e DATA_DIR=/data -p 3000:3000 opengym-api:default
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:3000/api/config >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -fsS http://localhost:3000/api/config | tee /dev/stderr | grep -q '"invite_only"'
+          docker run --rm opengym-api:default node -e \
+            'import("@anthropic-ai/claude-agent-sdk").then(()=>{console.error("AI runtime present in the default image");process.exit(1)},()=>process.exit(0))'
+          docker rm -f api-default
+
+      - name: the coach image carries a runnable Agent SDK
+        run: |
+          docker run --rm opengym-api:coach node --input-type=module -e '
+            const { adapterFor } = await import("./coach/adapters/index.js");
+            const r = await adapterFor("claude").check();
+            if (!r.ok) { console.error(r.error); process.exit(1); }
+            console.log(r.version);
+          '
+
+      - name: the coach image carries the Codex runtime and its sandbox
+        run: |
+          docker run --rm opengym-api:coach codex --version
+          docker run --rm opengym-api:coach bwrap --version
+          test "$(docker run --rm opengym-api:coach stat -c '%U %a' /coach-auth)" = "coach 700"
+
+      - name: neither Codex nor its sandbox is in the default image
+        run: |
+          ! docker run --rm opengym-api:default codex --version 2>/dev/null
+          ! docker run --rm opengym-api:default bwrap --version 2>/dev/null
+
+      - name: the privilege drop can actually be performed in the image
+        run: docker run --rm opengym-api:default id coach
