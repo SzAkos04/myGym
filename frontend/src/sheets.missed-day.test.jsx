@@ -180,7 +180,7 @@ describe('badges on a workout logged into the past', () => {
     expect(byDay['2026-09-14']).toContain(BENCH)
     expect(byDay['2026-09-15']).not.toContain(BENCH)   // 52.5 no longer leads what came before it
     expect(byDay['2026-09-11']).toContain(BENCH)
-    // The summary names it.
-    expect(mountTopSheet().textContent).toContain('New PR:')
+    // The summary names it, on the records card, with the set that made it.
+    expect(mountTopSheet().querySelector('.fin-pr')?.textContent).toMatch(/bench press.*60 kg × 10/i)
   })
 })
