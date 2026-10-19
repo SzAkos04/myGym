@@ -140,3 +140,41 @@ output), `api`, `web` (multi-stage build of `frontend/` served by nginx, which a
 - Don't commit `media/` or `data/` (gitignored).
 - Training-logic changes (progression, 1RM, session read-back) need a unit test in `src/lib`
   beside the code, not just manual clicking-through.
+
+## This fork (myGym): machines, branches, how work moves
+
+This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for work: `custom`;
+`main` mirrors upstream openGym, `scripts/sync-upstream.sh` merges upstream into `custom`).
+
+- **Dev machine: the Mac** (`~/Projects/myGym`). All coding, tests and previews happen here, on
+  the **`dev` branch**. Commit and push to `dev` as you go.
+- **Server: the Windows box** (`csodabogar2`, Tailscale `100.102.100.63`). It only runs Docker
+  from `C:\Users\SzAko\Documents\opengym` on the **`custom`** branch. Nobody codes there; it is slow,
+  and the test suite takes half an hour on it. Don't run tests there.
+- **Merging `dev` into `custom` happens only when the user says they tried it and it is good.**
+  Never on your own. Then: `git switch custom && git merge dev && git push && git switch dev`.
+- **Updating the server** after a merge (from the Mac, needs `sshd` running on Windows):
+  `ssh SzAko@csodabogar2 "cd C:\Users\SzAko\Documents\opengym && git pull && docker compose up -d --build"`.
+  Frontend-only changes need only the `web` service rebuilt; a change in `api/` needs `api` too.
+
+### Tests on the Mac
+
+`cd frontend && npm run test:changed -- origin/custom` runs only the tests the branch can affect
+(a couple of minutes); `npm run test:watch` reruns on save; one file:
+`npx vitest run src/views/Workout.test.jsx -t "name"`. Use Node 22 (Homebrew `node@22`), the
+version CI and the Docker images use. `node scripts/check-locales.mjs` before merging when strings
+changed: new UI strings may stay English-only (no pack entry) — a key in some packs but not
+others fails that check.
+
+### Running it on the Mac, signed in
+
+Passkeys are bound to the hostname (`RP_ID`). The live server is
+`https://csodabogar2.tailbd3336.ts.net` (Tailscale serve → `:8080`), so a passkey from there does
+not work on `localhost`. Develop against a local API with its own test data instead:
+
+    cd api && DATA_DIR=../data ORIGIN=http://localhost:5173 npm start      # terminal 1
+    cd frontend && API_ORIGIN=http://localhost:5173 npm run dev              # terminal 2
+
+Create a test profile on `http://localhost:5173`; it lives only in the Mac's `data/`. Real data:
+export a backup from the live app (Settings) and import it into the test profile. Phone layout:
+Safari → Develop → Enter Responsive Design Mode (Option-Cmd-R).
