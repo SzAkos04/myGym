@@ -646,7 +646,12 @@ h4.sec{
   background:none;border:none;transition:background var(--fast);
 }
 .wday .lbl{font-size:11px;color:var(--label-3);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
-.wday .num{font-size:17px;font-weight:400;margin:4px 0;letter-spacing:-.012em}
+/* Every day's number sits in the same 31px box as today's circle, so the circle does not push today's
+   number and dot below the rest of the row. */
+.wday .num{
+  font-size:17px;font-weight:400;letter-spacing:-.012em;
+  height:31px;display:flex;align-items:center;justify-content:center;margin:2px auto;
+}
 .wday .dot{width:5px;height:5px;border-radius:50%;background:transparent;margin:0 auto}
 .wday .dot.plan{background:var(--label-3)}
 .wday .dot.ovr{background:var(--orange)}
@@ -654,11 +659,7 @@ h4.sec{
 /* a day off with a note on it (#261, lib/day-notes.js): the same colour on every calendar */
 .wday .dot.noted{background:var(--indigo)}
 .wday:active{background:var(--surface-2)}
-.wday.today .num{
-  background:var(--acc);color:var(--on-acc);font-weight:600;
-  width:31px;height:31px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;margin:2px auto;
-}
+.wday.today .num{background:var(--acc);color:var(--on-acc);font-weight:600;width:31px;border-radius:50%}
 
 /* ----------------------------------------------------------------- list -- */
 .list{display:flex;flex-direction:column;gap:8px}

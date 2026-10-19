@@ -8,14 +8,15 @@ import React, { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { useStore } from '../store/useStore.js'
-import { startFlow } from '../sheets.jsx'
+import { startFlow, workoutDetailSheet } from '../sheets.jsx'
 import Home from './Home.jsx'
+import { todayISO } from '../lib/format.js'
 
 const nav = vi.fn()
 vi.mock('react-router-dom', () => ({ useNavigate: () => nav }))
 vi.mock('../sheets.jsx', () => ({
   starterPlanSheet: vi.fn(), bwSheet: vi.fn(), goalSheet: vi.fn(), dayOverrideSheet: vi.fn(),
-  calendarSheet: vi.fn(), startFlow: vi.fn(), bwDeltaColor: () => '', weighInsSheet: vi.fn(),
+  calendarSheet: vi.fn(), startFlow: vi.fn(), bwDeltaColor: () => '', weighInsSheet: vi.fn(), workoutDetailSheet: vi.fn(),
 }))
 
 const routines = [{ id: 'r1', name: 'Push', emoji: null, ex: [{ id: '0025' }] }]
@@ -23,7 +24,7 @@ const routines = [{ id: 'r1', name: 'Push', emoji: null, ex: [{ id: '0025' }] }]
 let host, root
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
-  nav.mockClear(); startFlow.mockClear()
+  nav.mockClear(); startFlow.mockClear(); workoutDetailSheet.mockClear()
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
@@ -82,5 +83,15 @@ describe('Home — the way to the Start screen when a plan already owns today', 
     const row = host.querySelector('.today-row')
     expect(row.querySelector('.ttl').textContent).toBe('Push (in progress)')
     expect(row.querySelector('.tag').textContent).toBe('Resume')
+  })
+
+  it('opens the session already done today instead of starting it over', () => {
+    const w = { id: 'w1', d: todayISO(), name: 'Push', routineId: 'r1', start: 1000, end: 61000, entries: [] }
+    setS({ workouts: [w] }); mount()
+    const row = host.querySelector('.today-row')
+    expect(row.querySelector('.lbl2').textContent).toBe('Done today')
+    act(() => { row.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+    expect(workoutDetailSheet).toHaveBeenCalledWith(w)
+    expect(startFlow).not.toHaveBeenCalled()
   })
 })
