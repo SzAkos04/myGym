@@ -154,7 +154,9 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
 - **Merging `dev` into `custom` happens only when the user says they tried it and it is good.**
   Never on your own. Then: `git switch custom && git merge dev && git push && git switch dev`.
 - **Updating the server** after a merge (from the Mac, needs `sshd` running on Windows):
-  `ssh SzAko@csodabogar2 "set DOCKER_CONFIG=C:\Users\SzAko\.docker-ssh&& cd C:\Users\SzAko\Documents\opengym && git pull --ff-only && docker compose up -d --build"`.
+  `ssh SzAko@csodabogar2 "cd C:\Users\SzAko\Documents\opengym && git pull --ff-only && scripts\server-update.cmd"`.
+  The script rebuilds with the commit as `APP_BUILD` (passed by `docker-compose.override.yml`),
+  so Settings shows which build is live ("v1.4.1+<commit>"); it also sets the `DOCKER_CONFIG` below.
   `DOCKER_CONFIG` points at a config that keeps the CLI off the Windows credential store: over SSH
   it is out of reach and every image pull fails with "A specified logon session does not exist".
   Leaving `credsStore` out is not enough (the CLI then picks `wincred`, the same store); the file

@@ -2,3 +2,5 @@
 # a Windows checkout with core.autocrlf gave them CRLF, and a shebang ending in a carriage return
 # is "not found", so the web container restarted in a loop.
 *.sh text eol=lf
+# Windows batch files run on the server under cmd, which wants CRLF.
+*.cmd text eol=crlf

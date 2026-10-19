@@ -1,0 +1,9 @@
+# myGym only (Compose reads this file next to docker-compose.yml by itself; upstream has none, so
+# syncing never conflicts over it). The web image is built with the commit it came from, and the
+# app shows it as "v1.4.1+<commit>" in Settings, so "which version is the server running?" has an
+# answer on the phone. scripts/server-update.cmd sets APP_BUILD; unset, the plain version shows.
+services:
+  web:
+    build:
+      args:
+        APP_BUILD: ${APP_BUILD:-}
