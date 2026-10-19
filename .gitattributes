@@ -1,3 +1,4 @@
 # Shell scripts run inside Linux containers (web/05-check-base-path.sh is the nginx entrypoint):
-# a Windows checkout with core.autocrlf would give them CRLF, and "#!/bin/sh" is "not found".
+# a Windows checkout with core.autocrlf gave them CRLF, and a shebang ending in a carriage return
+# is "not found", so the web container restarted in a loop.
 *.sh text eol=lf
