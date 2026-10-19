@@ -154,7 +154,10 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
 - **Merging `dev` into `custom` happens only when the user says they tried it and it is good.**
   Never on your own. Then: `git switch custom && git merge dev && git push && git switch dev`.
 - **Updating the server** after a merge (from the Mac, needs `sshd` running on Windows):
-  `ssh SzAko@csodabogar2 "cd C:\Users\SzAko\Documents\opengym && git pull && docker compose up -d --build"`.
+  `ssh SzAko@csodabogar2 "set DOCKER_CONFIG=C:\Users\SzAko\.docker-ssh&& cd C:\Users\SzAko\Documents\opengym && git pull --ff-only && docker compose up -d --build"`.
+  `DOCKER_CONFIG` points at a config without `"credsStore": "desktop"`: over SSH the Windows
+  credential store is out of reach and every image pull fails with "A specified logon session does
+  not exist". No registry login is stored, so nothing is lost.
   Frontend-only changes need only the `web` service rebuilt; a change in `api/` needs `api` too.
 - **SSH to the server:** user `SzAko` is a Microsoft account, so a password login wants the
   Microsoft account password (not the Windows PIN). Key login: the Mac's public key goes in
