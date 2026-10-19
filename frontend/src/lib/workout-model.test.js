@@ -4,7 +4,7 @@ import {
   setType, isDropSet, isRestPauseSet, dropsOf, clustersOf, extraVolumeOf,
   addDrop, addCluster, removeDropAt, removeClusterAt, setDropAt, setClusterAt,
   nextDropWeight, nextBurstReps, splitBurstReps,
-  isSideSet, makeSideSet, syncSideAggregate, setSideField, toggleSide, WEIGHT_ORIGIN_MANUAL,
+  isSideSet, makeSideSet, syncSideAggregate, setSideField, setSideFieldMirrored, sideFollows, toggleSide, WEIGHT_ORIGIN_MANUAL,
   addSideDrop, removeSideDropAt, setSideDropAt, addSideCluster, removeSideClusterAt, setSideClusterAt,
 } from './workout-model.js'
 
@@ -367,5 +367,22 @@ describe('addSideCluster / removeSideClusterAt / setSideClusterAt', () => {
     expect(s.sides.L.clusters).toEqual([])
     expect(s.sides.L.r).toBe(8)                        // back to the base
     expect(s.type).toBeUndefined()
+  })
+})
+
+describe('setSideFieldMirrored — the right side follows the left', () => {
+  const row = () => makeSideSet({ w: 20, r: 16 })
+  it('a weight or reps typed on L goes onto R while R is not ticked', () => {
+    const w = setSideFieldMirrored(row(), 'L', 'w', 25)
+    expect([w.sides.L.w, w.sides.R.w, w.w]).toEqual([25, 25, 25])
+    const r = setSideFieldMirrored(w, 'L', 'r', 10)
+    expect([r.sides.L.r, r.sides.R.r, r.r]).toEqual([10, 10, 20])
+  })
+  it('an edit on R, an effort, or a ticked R stays where it is', () => {
+    expect(setSideFieldMirrored(row(), 'R', 'w', 25).sides.L.w).toBe(20)
+    expect(setSideFieldMirrored(row(), 'L', 'rir', 2).sides.R.rir).toBeUndefined()
+    const ticked = toggleSide(row(), 'R')
+    expect(sideFollows(ticked, 'L', 'w')).toBe(false)
+    expect(setSideFieldMirrored(ticked, 'L', 'w', 25).sides.R.w).toBe(20)
   })
 })

@@ -1057,16 +1057,20 @@ export function insertWarmupRow(rows, mode, target, step = 2.5, floor = 0) {
 // warm-up (its weight, reps and tick kept; drops, bursts, sides and effort dropped, since a
 // warm-up has none) and moves to the end of the warm-ups, so it is numbered, rested and left out
 // of progression and records like any other warm-up. A row that is one already is left alone.
-// Only a plain straight set: a warm-up is one weight times one rep count, so a drop set would
-// lose its drops, a rest-pause row would add its bursts into one inflated rep count, and a
-// per-side row would merge both sides with no way back (a per-side warm-up is never made a work
-// set again).
-export const canBeWarmup = row => !!row && !isWarmupRow(row) && !isSideSet(row) && !isDropSet(row) && !isRestPauseSet(row)
+// A plain straight set, or a per-side one: a warm-up is one weight times one rep count, so a drop
+// set would lose its drops and a rest-pause row would add its bursts into one inflated rep count.
+// A per-side row keeps its two sides, as a unilateral warm-up is logged L/R anyway
+// (insertWarmupRow), so it goes there and back without merging anything.
+export const canBeWarmup = row => !!row && !isWarmupRow(row) && !isDropSet(row) && !isRestPauseSet(row)
 
 export function makeWarmupAt(rows, i) {
   const src = rows[i]
   if (!canBeWarmup(src)) return rows
-  const warm = { w: src.w || 0, r: src.r, done: !!src.done, phase: 'warmup', warmup: true }
+  // A warm-up carries no effort rating, on either side.
+  const plainSide = ({ rir, rpe, ...sd }) => sd
+  const warm = isSideSet(src)
+    ? syncSideAggregate({ w: src.w || 0, r: src.r, done: !!src.done, phase: 'warmup', warmup: true, sides: { L: plainSide(src.sides.L), R: plainSide(src.sides.R) } })
+    : { w: src.w || 0, r: src.r, done: !!src.done, phase: 'warmup', warmup: true }
   if (src.at != null) warm.at = src.at
   return placeRow(rows, i, warm)
 }

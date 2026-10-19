@@ -84,13 +84,13 @@ export function withPlatePairs(S, w, n, now = Date.now()) {
 export const withStandardPlates = (S, now = Date.now()) => ({ ...(S?.plates || {}), [unitOf(S)]: { _ts: now } })
 
 /**
- * An exercise's own loading as S.loadKind stores it: 'pairs' | 'single' | 'none', or null when
+ * An exercise's own loading as S.loadKind stores it: 'pairs' | 'single' | 'pulley' | 'none', or null when
  * the equipment decides. A bare string is how the first builds of plate loading stored it, and
  * still reads as that kind.
  */
 export function loadKindOf(value) {
   const k = value && typeof value === 'object' ? value.kind : value
-  return k === 'pairs' || k === 'single' || k === 'none' ? k : null
+  return k === 'pairs' || k === 'single' || k === 'pulley' || k === 'none' ? k : null
 }
 
 /** S.loadKind with the exercise's loading set to `kind`, or back on its equipment's for null. */
@@ -218,9 +218,13 @@ export function baseWeightFor(S, exOrId) {
  *   → { kind, perSide, plates, missing, barOnly }
  */
 export function rowLoad(kind, weight, base, inv) {
-  if (kind !== 'pairs' && kind !== 'single') return null
+  if (kind !== 'pairs' && kind !== 'single' && kind !== 'pulley') return null
   const w = num(weight)
   if (!(w > 0)) return null
+  // A cable on a 2:1 pulley (a double-pulley column or crossover): the stack travels twice as far
+  // as the handle, so the handle carries half of it. The weight logged is what you actually pull;
+  // the line says what to pin on the stack, twice that. No plates, nothing missing.
+  if (kind === 'pulley') return { kind, barOnly: false, perSide: 0, plates: [], missing: 0, stack: Math.round(w * 2 * 100) / 100 }
   const b = Math.max(0, num(base))
   if (w <= b) return { kind, barOnly: true, perSide: 0, plates: [], missing: 0 }
   const perSide = Math.round(((w - b) / (kind === 'pairs' ? 2 : 1)) * 100) / 100
@@ -233,7 +237,7 @@ export function rowLoad(kind, weight, base, inv) {
 
 /** Two rows load the same when their stacks match, both are (or are not) bar-only, and the same amount is missing. */
 export const sameLoad = (a, b) =>
-  !!a && !!b && a.barOnly === b.barOnly && a.missing === b.missing
+  !!a && !!b && a.barOnly === b.barOnly && a.missing === b.missing && a.stack === b.stack
   && a.plates.length === b.plates.length && a.plates.every((w, i) => w === b.plates[i])
 
 /**

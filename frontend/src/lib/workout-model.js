@@ -270,6 +270,18 @@ export function setSideField(row, side, field, value) {
   return syncSideAggregate({ ...base, sides: { ...base.sides, [side]: cur } })
 }
 
+// The left side is logged first, so a weight or rep count typed there is what the right side is
+// going to do too: the change follows onto R while R is not ticked yet. An edit on R stays on R,
+// and so does effort, which is how that one side felt. Returns whether R followed.
+export function sideFollows(row, side, field) {
+  const base = objectOf(row)
+  return side === 'L' && (field === 'w' || field === 'r') && isSideSet(base) && base.sides.R.done !== true
+}
+export function setSideFieldMirrored(row, side, field, value) {
+  const next = setSideField(row, side, field, value)
+  return sideFollows(row, side, field) ? setSideField(next, 'R', field, value) : next
+}
+
 // Flip one side's done tick, resyncing the row's own done (true only when both sides are).
 export function toggleSide(row, side) {
   const base = objectOf(row)

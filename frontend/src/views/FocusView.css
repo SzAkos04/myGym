@@ -17,7 +17,8 @@
 .focus-tags{display:flex;flex-wrap:wrap;gap:5px}
 .focus-note,.focus-last,.focus-guidance{color:var(--label-2);font-size:12px;line-height:1.35}
 .focus-note{padding-left:8px;border-left:var(--hair) solid var(--sep)}
-.focus-note.pinned{color:var(--yellow);display:flex;gap:5px;align-items:flex-start}
+.focus-note.pinned{color:var(--yellow-ink);display:flex;gap:5px;align-items:flex-start}
+.focus-note.standing{display:flex;gap:5px;align-items:flex-start}
 .focus-note .icn{margin-top:1px;flex:none}
 .focus-guidance{display:flex;align-items:center;gap:5px;width:max-content;text-align:left;color:var(--acc);font-weight:600}
 .focus-guidance .icn{font-size:13px}

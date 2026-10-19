@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { finishCompare, trendOf } from './finish-compare.js'
+import { finishCompare, trendOf, topSet } from './finish-compare.js'
 
 const set = (w, r, extra = {}) => ({ w, r, done: true, ...extra })
 const routine = { id: 'r1', name: 'A', prog: 'linear', ex: [{ id: 'bench', sets: 3, reps: 5, weight: 60, mode: 'reps' }] }
@@ -29,5 +29,13 @@ describe('last time and next time on the finish summary (#324)', () => {
     expect(row.last).toBeNull()
     expect(row.trend).toBeNull()
     expect(row.next).toBeNull()
+  })
+})
+
+describe('topSet', () => {
+  it('is the heaviest set, the most reps breaking a tie', () => {
+    expect(topSet([{ w: 60, r: 8 }, { w: 70, r: 5 }, { w: 70, r: 6 }, { w: 65, r: 10 }])).toEqual({ w: 70, r: 6 })
+    expect(topSet([{ w: 0, r: 12 }, { w: 0, r: 15 }])).toEqual({ w: 0, r: 15 })
+    expect(topSet([])).toBeNull()
   })
 })

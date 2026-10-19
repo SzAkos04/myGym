@@ -52,7 +52,7 @@ import { useSheetKeyboard, useRevealActiveChip, tappable } from './lib/use-sheet
 import { useAutoMore } from './lib/use-auto-more.js'
 import { isFav, toggleFav, sortFavouritesFirst, sortYoursFirst } from './lib/favourites.js'
 import { buildSessionEntries, buildPlannedEntry, builtOutOfProgression } from './lib/session-start.js'
-import { finishCompare, finishCardio } from './lib/finish-compare.js'
+import { finishCompare, finishCardio, topSet } from './lib/finish-compare.js'
 import { workoutFit, fitFileName } from './lib/fit-export.js'
 import { joinSessionNoProg } from './lib/session-noprog.js'
 import { buildCombinedEntries, deriveSessionName } from './lib/session-merge.js'
@@ -458,9 +458,9 @@ function ImportSummary({ parsed, close }) {
       </>}
     </div>
 
-    {parsed.mixedUnits ? <div className="small" style={{ color: 'var(--yellow)', marginBottom: 10 }}>
+    {parsed.mixedUnits ? <div className="small" style={{ color: 'var(--yellow-ink)', marginBottom: 10 }}>
       {t('The file mixes kg and lb, so each set is converted to {0}.', st.unit)}
-    </div> : parsed.converted ? <div className="small" style={{ color: 'var(--yellow)', marginBottom: 10 }}>
+    </div> : parsed.converted ? <div className="small" style={{ color: 'var(--yellow-ink)', marginBottom: 10 }}>
       {t('The file is in {0} and your profile is in {1}, so weights get converted.', parsed.fileUnit, st.unit)}
     </div> : null}
     {!isBW && !parsed.fileUnit && !parsed.mixedUnits && <div className="small dim" style={{ marginBottom: 10 }}>
@@ -687,7 +687,7 @@ function HevyImportSheet({ close }) {
     </div>}
     {!b.bodyweight.length && <div style={{ borderBottom: '1px solid var(--sep)', marginBottom: 8 }} />}
 
-    {(w.converted || r.converted) && <div className="small" style={{ color: 'var(--yellow)', marginBottom: 10 }}>
+    {(w.converted || r.converted) && <div className="small" style={{ color: 'var(--yellow-ink)', marginBottom: 10 }}>
       {t('Hevy stores weights in kg, so they’ll be converted to {0}.', st.unit)}
     </div>}
     {wantWorkouts && (w.rirSets + w.rpeSets) > 0 && <div className="small dim" style={{ marginBottom: 10 }}>
@@ -791,13 +791,14 @@ function BarWeightEditor({ ex, cfg, extra }) {
   })
   return <>
     <Segmented className="seg-inline" value={kind} onChange={setKind}
-      options={[{ value: 'pairs', label: t('Per side') }, { value: 'single', label: t('Single stack') }, { value: 'none', label: t('Off') }]} />
+      options={[{ value: 'pairs', label: t('Per side') }, { value: 'single', label: t('Single stack') }, { value: 'pulley', label: t('Cable 2:1') }, { value: 'none', label: t('Off') }]} />
     <div className="small dim" style={{ margin: '8px 0 12px' }}>
       {kind === 'pairs' ? t('Plates split over both sides of a bar.')
         : kind === 'single' ? t('One stack: a belt, a landmine, a plate-loaded machine, a sled.')
-          : t('No plate line under the sets.')}
+          : kind === 'pulley' ? t('A cable on two pulleys: log what the handle carries, half the stack. The line under the sets says what to set on the stack.')
+            : t('No plate line under the sets.')}
     </div>
-    {kind !== 'none' && <>
+    {kind !== 'none' && kind !== 'pulley' && <>
       {bar && <div className="list menu-list" style={{ marginBottom: 6 }}>
         <Row icon="barbell" title={t('No bar')} subtitle={t('The weight you log is all plates.')}>
           <Switch checked={noBar} onChange={setNoBar} />
@@ -1000,7 +1001,7 @@ function ExerciseDetail({ ex, close }) {
       {detailTags(ex).map(tg => <span key={tg.key} className={'tag' + (tg.acc ? ' acc' : '')}>{tg.icon && <Icon name={tg.icon} />}{tg.label}</span>)}
     </div>
     {descFor(ex) && <div className="exnote">{descFor(ex)}</div>}
-    {best > 0 && <div className="small row" style={{ marginBottom: 6, gap: 5 }}><Icon name="trophy" style={{ fontSize: 14, color: 'var(--yellow)' }} />{t('Best:')} <b className="accent" style={{ whiteSpace: 'nowrap' }}>{fmtNum(best)} {st.unit}</b>{last ? ` · ${t('last')} ${fmtDate(last.d)}: ${last.sets.map(s => setLabel(ex.id, s, last.target, speedUnitOf(st))).join(', ')}` : ''}</div>}
+    {best > 0 && <div className="small row" style={{ marginBottom: 6, gap: 5 }}><Icon name="trophy" style={{ fontSize: 14, color: 'var(--yellow-ink)' }} />{t('Best:')} <b className="accent" style={{ whiteSpace: 'nowrap' }}>{fmtNum(best)} {st.unit}</b>{last ? ` · ${t('last')} ${fmtDate(last.d)}: ${last.sets.map(s => setLabel(ex.id, s, last.target, speedUnitOf(st))).join(', ')}` : ''}</div>}
     <Button variant="primary" icon="plus" style={{ margin: '10px 0 4px' }} onClick={() => addToRoutineSheet(ex)}>{t('Add to my plan')}</Button>
     {last && <Button icon="history" style={{ marginTop: 4 }} onClick={() => exerciseHistorySheet(ex.id)}>{t('History')}</Button>}
     {isCustomEx(ex) && <div className="row" style={{ gap: 8, marginTop: 8 }}>
@@ -1093,7 +1094,7 @@ function ExerciseHistory({ exId, workoutId = null }) {
       <LineChart points={onE1 ? h.e1rmPoints : h.points} h={140} unit={onE1 ? st.unit : unit} color="var(--blue)" />
     </div>
     <div className="small row" style={{ margin: '6px 0 4px', gap: 5 }}>
-      <Icon name="trophy" style={{ fontSize: 14, color: 'var(--yellow)' }} />
+      <Icon name="trophy" style={{ fontSize: 14, color: 'var(--yellow-ink)' }} />
       {t('Best:')} <b className="accent">{fmtNum(onE1 ? e1Best : h.best)} {onE1 ? st.unit : unit}</b>
     </div>
     {bal && <div className="small row" style={{ margin: '0 0 4px', gap: 5 }}>
@@ -2298,7 +2299,7 @@ function PlanImport({ bundle, close }) {
         : ''}
     </div>
     <div className="dim small" style={{ marginBottom: 14, lineHeight: 1.4 }}>{t('These are added as new routines. Nothing you already have is touched.')}</div>
-    {bundle.dropped > 0 && <div className="small" style={{ color: 'var(--yellow)', marginBottom: 14, lineHeight: 1.4 }}>
+    {bundle.dropped > 0 && <div className="small" style={{ color: 'var(--yellow-ink)', marginBottom: 14, lineHeight: 1.4 }}>
       {t(bundle.dropped === 1
         ? '{0} exercise in the file isn’t in your library and was left out.'
         : '{0} exercises in the file aren’t in your library and were left out.', bundle.dropped)}
@@ -2574,7 +2575,7 @@ function WorkoutDetail({ w, close }) {
       <div className="grow"><div className={`tt ${exerciseNameClass(ex)}`} style={{ fontWeight: 600 }}>{nameOf(e)} {prsOf(st.workouts, w).includes(e.id) && <span className="pr"><Icon name="trophy" />PR</span>}</div>
         <div className="ss">{e.sets.filter(hasCompletedWork).map(s => setLabel(e.id, s, e.target, speedUnitOf(st))).join('  ·  ') || t('no sets')}</div>
         {e.note && <div className="small dim" style={{ marginTop: 3 }}>
-          {e.notePin && <Icon name="pin" style={{ fontSize: 12, marginInlineEnd: 4, verticalAlign: '-1px', color: 'var(--yellow)' }} />}{e.note}
+          {e.notePin && <Icon name="pin" style={{ fontSize: 12, marginInlineEnd: 4, verticalAlign: '-1px', color: 'var(--yellow-ink)' }} />}{e.note}
         </div>}</div>
       <Icon name="chevronRight" className="chev" style={{ alignSelf: 'center' }} />
     </div>
@@ -3375,24 +3376,29 @@ export function setsLine(sets, unit) {
   return sets.map(s => (s.w > 0 ? fmtNum(s.w) + '×' : '') + reps(s)).join(' · ')
 }
 const TREND = { 1: ['arrowUp', 'var(--green)'], 0: ['minus', 'var(--text-2)'], [-1]: ['arrowDown', 'var(--orange)'] }
-function LastAndNext({ st, w }) {
-  const rows = finishCompare(st, w)
+// One row per lift in three columns, as a table reads: what it was last time, today, and what the
+// next session opens at. The trend sits beside the name, so the row says up or down at a glance.
+function LastAndNext({ st, w, rows = finishCompare(st, w) }) {
   if (!rows.length) return null
   const nextWord = { up: t('step up'), hold: t('same again'), down: t('lighter'), deload: t('deload') }
-  return <div style={{ textAlign: 'start', marginBottom: 14 }}>
+  return <div className="fin-sec">
     <h4 className="sec">{t('Last time and next time')}</h4>
-    <div className="list">{rows.map(row => {
+    <div className="list fin-ex">{rows.map(row => {
       const ex = EXIDX[row.id]
       const tr = row.trend == null ? null : TREND[row.trend]
-      return <div key={row.id} className="item" style={{ display: 'block' }}>
-        <div className="row between" style={{ gap: 8 }}>
-          <span className={'tt ' + exerciseNameClass(ex)} style={{ fontWeight: 600 }}>{ex ? exerciseNameFor(ex) : row.id}</span>
+      return <div key={row.id} className="item">
+        <div className="fin-ex-hd">
+          <span className={'tt ' + exerciseNameClass(ex)}>{ex ? exerciseNameFor(ex) : row.id}</span>
           {tr ? <span style={{ color: tr[1], display: 'inline-flex' }} aria-label={row.trend > 0 ? t('Up on last time') : row.trend < 0 ? t('Down on last time') : t('Same as last time')}><Icon name={tr[0]} /></span>
             : <span className="tag nocap">{t('First time')}</span>}
         </div>
-        <div className="small">{t('Today')}: {setsLine(row.today, st.unit)}</div>
-        {row.last && <div className="small dim">{t('Last time')}: {setsLine(row.last, st.unit)}</div>}
-        {row.next && <div className="small accent">{t('Next time')}: {row.next.w != null ? fmtNum(row.next.w) + ' ' + st.unit : ''}{row.next.w != null && row.next.r != null ? ' × ' : ''}{row.next.r != null ? row.next.r : ''} · {nextWord[row.next.kind]}</div>}
+        <div className="fin-cols">
+          <div><div className="k">{t('Last time')}</div><div className="dim">{row.last ? setsLine(row.last, st.unit) : '–'}</div></div>
+          <div><div className="k">{t('Today')}</div><div>{setsLine(row.today, st.unit)}</div></div>
+          <div><div className="k">{t('Next time')}</div>{row.next
+            ? <div className="accent">{row.next.w != null ? fmtNum(row.next.w) + ' ' + st.unit : ''}{row.next.w != null && row.next.r != null ? ' × ' : ''}{row.next.r != null ? row.next.r : ''}<div className="small dim">{nextWord[row.next.kind]}</div></div>
+            : <div className="dim">–</div>}</div>
+        </div>
       </div>
     })}</div>
   </div>
@@ -3403,7 +3409,7 @@ function LastAndNext({ st, w }) {
 function CardioDone({ st, w }) {
   const rows = finishCardio(w)
   if (!rows.length) return null
-  return <div style={{ textAlign: 'start', marginBottom: 14 }}>
+  return <div className="fin-sec">
     <h4 className="sec">{t('Cardio')}</h4>
     <div className="list">{rows.map((row, i) => {
       const ex = EXIDX[row.id]
@@ -3415,30 +3421,48 @@ function CardioDone({ st, w }) {
   </div>
 }
 
+// The summary after Finish, as a full-width sheet rather than a 300px dialog: the four numbers on
+// one strip, the records with the set that made them, then lift by lift, then the body map. The
+// button stays at the bottom of the screen however far the list goes.
 function FinishSummary({ w, prs, e1prs = [], close }) {
   const st = useStore(s => s.S)
-  return <div style={{ textAlign: 'center', padding: '8px 0' }}>
-    <div style={{ fontSize: 44, display: 'flex', justifyContent: 'center', color: 'var(--acc)' }}><Icon name="trophy" /></div>
-    <h3 style={{ margin: '8px 0' }}>{t('Workout complete!')}</h3>
-    <div className="tiles" style={{ textAlign: 'start' }}>
-      <div className="tile"><div className="l">{t('Duration')}</div><div className="v" style={{ fontSize: '1.1rem' }}>{fmtDur(w.end - w.start)}</div></div>
-      <div className="tile"><div className="l">{t('Volume')}</div><div className="v" style={{ fontSize: '1.1rem' }}>{fmtVol(w.vol, st.unit)}</div></div>
-      <div className="tile"><div className="l">{t('Sets')}</div><div className="v" style={{ fontSize: '1.1rem' }}>{setsWorkCount(setsDone(w), workSetsDone(w))}</div></div>
-      <div className="tile"><div className="l">{t('PRs')}</div><div className="v" style={{ fontSize: 20 }}>{prs.length || '–'}</div></div>
+  const rows = finishCompare(st, w)
+  const name = id => (EXIDX[id] ? exerciseNameFor(EXIDX[id]) : id)
+  const prSet = id => {
+    const s = topSet(rows.find(r => r.id === id)?.today)
+    return s ? (s.w > 0 ? fmtNum(s.w) + ' ' + st.unit + ' × ' : '') + s.r : ''
+  }
+  const allSets = setsDone(w)
+  const workSets = workSetsDone(w)
+  return <div className="fin">
+    <div className="fin-hero">
+      <div className="fin-badge"><Icon name="trophy" /></div>
+      <h3>{t('Workout complete!')}</h3>
+      <div className="fin-sub">{[w.name, fmtDate(w.d)].filter(Boolean).join(' · ')}</div>
     </div>
-    {(prs.length > 0 || e1prs.length > 0) && <div style={{ textAlign: 'start', marginBottom: 12 }}>
-      {prs.map(id => <div key={id} className="small accent row" style={{ gap: 5 }}><Icon name="trophy" style={{ fontSize: 13 }} />{t('New PR:')} <span className={exerciseNameClass(EXIDX[id])}>{EXIDX[id] ? exerciseNameFor(EXIDX[id]) : id}</span></div>)}
-      {e1prs.map(p => <div key={p.id} className="small accent row" style={{ gap: 5 }}><Icon name="chartLine" style={{ fontSize: 13 }} />{t('Best estimated 1RM:')} <span className={exerciseNameClass(EXIDX[p.id])}>{EXIDX[p.id] ? exerciseNameFor(EXIDX[p.id]) : p.id}</span> · {fmtNum(p.est)} {st.unit}</div>)}
+    <div className="fin-stats">
+      <div className="fin-stat"><div className="v">{fmtDur(w.end - w.start)}</div><div className="l">{t('Duration')}</div></div>
+      <div className="fin-stat"><div className="v">{fmtVol(w.vol, st.unit)}</div><div className="l">{t('Volume')}</div></div>
+      <div className="fin-stat" title={setsWorkCount(allSets, workSets)}><div className="v">{workSets}</div><div className="l">{t('Sets')}</div>
+        {allSets > workSets && <div className="s">{t('+{0} warm-up', allSets - workSets)}</div>}</div>
+      <div className={'fin-stat' + (prs.length ? ' pr' : '')}><div className="v">{prs.length || '–'}</div><div className="l">{t('PRs')}</div></div>
+    </div>
+    {(prs.length > 0 || e1prs.length > 0) && <div className="fin-prs">
+      {prs.map(id => <div key={id} className="fin-pr"><Icon name="trophy" />
+        <span className={'nm ' + exerciseNameClass(EXIDX[id])}>{name(id)}</span><span className="set">{prSet(id)}</span></div>)}
+      {e1prs.map(p => <div key={p.id} className="fin-pr"><Icon name="chartLine" />
+        <span className={'nm ' + exerciseNameClass(EXIDX[p.id])}>{name(p.id)}</span><span className="set">{t('e1RM')} {fmtNum(p.est)} {st.unit}</span></div>)}
     </div>}
-    <h4 className="sec" style={{ textAlign: 'start' }}>{t('What you just trained')}</h4>
-    <BodyMap load={loadOfWorkouts([w])} body={st.body} />
-    <div style={{ height: 14 }} />
-    <LastAndNext st={st} w={w} />
+    <LastAndNext st={st} w={w} rows={rows} />
     <CardioDone st={st} w={w} />
+    <div className="fin-sec fin-map">
+      <h4 className="sec">{t('What you just trained')}</h4>
+      <BodyMap load={loadOfWorkouts([w])} body={st.body} />
+    </div>
     {/* The moment for a progress photo or the clip of a set: the workout is already saved, so
         what is added here goes straight onto its record. */}
-    <div style={{ textAlign: 'start' }}><WorkoutMediaSection w={w} hint /></div>
-    <Button variant="primary" onClick={() => closeThenNav(close, '/home')}>{t('Nice!')}</Button>
+    <div className="fin-sec"><WorkoutMediaSection w={w} hint /></div>
+    <div className="fin-foot"><Button variant="primary" onClick={() => closeThenNav(close, '/home')}>{t('Nice!')}</Button></div>
   </div>
 }
 export function finishWorkout() {
@@ -3528,5 +3552,5 @@ function doFinishWorkout() {
   // into s.active, which is gone. What it held is not logged, like any set left unchecked.
   useUI.getState().stopWork()
   beep(snd(), 880, 0.15); beep(snd(), 1100, 0.15, 0.18); beep(snd(), 1320, 0.3, 0.36)
-  ui().openSheet(close => <FinishSummary w={shown} prs={prs} e1prs={e1prs} close={close} />, { kind: 'center', locked: true })
+  ui().openSheet(close => <FinishSummary w={shown} prs={prs} e1prs={e1prs} close={close} />, { locked: true })
 }

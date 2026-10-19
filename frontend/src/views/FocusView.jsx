@@ -5,13 +5,13 @@ import { clampIncline, hasIncline, inclineFits, INCLINE_MAX, INCLINE_STEP } from
 import { exerciseNameFor, t } from '../lib/i18n.js'
 import { fmtDate, fmtNum, fmtPlate } from '../lib/format.js'
 import { EFFORT, effortOf, modeOf } from '../lib/history.js'
-import { lastEntryFor, pinnedNoteFor, setsRepsOf } from '../lib/history.js'
+import { lastEntryFor, pinnedNoteFor, exNoteFor, setsRepsOf } from '../lib/history.js'
 import { effortColor, rirOf } from '../lib/effort.js'
 import { progressionGuidance } from '../lib/progression-copy.js'
 import {
   addCluster, addDrop, addSideCluster, addSideDrop, clustersOf, dropsOf,
   isFailureSet, isSideSet, isWarmupRow, nextBurstReps, toggleFailure, nextDropWeight, setClusterAt,
-  setDropAt, setSideClusterAt, setSideDropAt, setSideField,
+  setDropAt, setSideClusterAt, setSideDropAt, setSideField, setSideFieldMirrored,
 } from '../lib/workout-model.js'
 import { weightIncrement, stepWeight } from '../lib/progression.js'
 import { speedUnitOf, toSpeed, fromSpeed } from '../lib/speed.js'
@@ -101,7 +101,7 @@ function PlateBadge({ S, entry, set }) {
   const load = rowLoad(loadKindFor(S, { ...(entry.target || {}), id: entry.id }), set.w, baseWeightFor(S, entry.id), inventoryFor(S))
   if (!load) return null
   const stack = load.plates.map(fmtPlate).join(' + ')
-  const text = load.barOnly ? t('Bar only')
+  const text = load.kind === 'pulley' ? t('Stack {0}', fmtNum(load.stack) + ' ' + S.unit) : load.barOnly ? t('Bar only')
     : load.kind === 'pairs' ? t('{0} per side', stack || '–') : t('Load {0}', stack || '–')
   return <span className="focus-badge plate"><Icon name="plate" />{text}{load.missing > 0 && <> · <span className="short">{t('{0} short', fmtPlate(load.missing) + ' ' + S.unit)}</span></>}</span>
 }
@@ -117,6 +117,7 @@ export default function FocusView({
   const ex = exOr(entry.id)
   const last = lastEntryFor(S, entry.id)
   const pinnedNote = pinnedNoteFor(S, entry.id)
+  const standingNote = exNoteFor(S, entry.id)
   const guidance = progressionGuidance(entry.plan)
   // Exercise operations use indexes, so their local-only epoch discards stale pointers instead
   // of letting a moved, removed, or newly inserted entry inherit one.
@@ -166,7 +167,7 @@ export default function FocusView({
 
   const sideFields = side => {
     const sideSet = set.sides[side]
-    const change = (field, value) => onMutateSet(setIdx, row => setSideField(row, side, field, value))
+    const change = (field, value) => onMutateSet(setIdx, row => setSideFieldMirrored(row, side, field, value))
     const sideDrops = dropsOf(sideSet).length ? dropsOf(sideSet) : Array.isArray(sideSet.drops) ? sideSet.drops : []
     const sideBursts = clustersOf(sideSet).length ? clustersOf(sideSet) : Array.isArray(sideSet.clusters) ? sideSet.clusters : []
     return <section className="focus-side" data-focus-side={side}>
@@ -274,6 +275,7 @@ export default function FocusView({
           {ex.eq && <span className="tag">{t(ex.eq)}</span>}
         </div>
         {entry.target?.note && <div className="focus-note">{entry.target.note}</div>}
+        {standingNote && <div className="focus-note standing"><Icon name="info" />{standingNote}</div>}
         {pinnedNote && <div className="focus-note pinned"><Icon name="flag" />{t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}</div>}
         {entry.note && <div className="focus-note">{entry.note}</div>}
         {last && <div className="focus-last">{t('Last time')} · {fmtDate(last.d)}</div>}

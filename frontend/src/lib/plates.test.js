@@ -176,6 +176,19 @@ describe('baseWeightFor', () => {
   })
 })
 
+describe('rowLoad on a 2:1 pulley', () => {
+  test('the logged weight is the handle\'s, the line is the stack: twice that', () => {
+    expect(rowLoad('pulley', 17.5, 0, homeInv)).toEqual({ kind: 'pulley', barOnly: false, perSide: 0, plates: [], missing: 0, stack: 35 })
+    expect(rowLoad('pulley', 0, 0, homeInv)).toBe(null)
+  })
+  test('is a stored choice, and two rows at one weight load the same', () => {
+    expect(loadKindOf('pulley')).toBe('pulley')
+    expect(loadKindFor({ loadKind: withLoadKind({}, 'x', 'pulley') }, 'x')).toBe('pulley')
+    expect(sameLoad(rowLoad('pulley', 20, 0), rowLoad('pulley', 20, 0))).toBe(true)
+    expect(sameLoad(rowLoad('pulley', 20, 0), rowLoad('pulley', 25, 0))).toBe(false)
+  })
+})
+
 describe('rowLoad', () => {
   test('a bar row: per side beyond the bar, as plates', () => {
     expect(rowLoad('pairs', 145, 45, homeInv)).toEqual({ kind: 'pairs', barOnly: false, perSide: 50, plates: [45, 5], missing: 0 })

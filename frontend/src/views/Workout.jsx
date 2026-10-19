@@ -42,8 +42,9 @@ import { sessionNoProg, setSessionNoProg, setEntryNoProg, joinSessionNoProg } fr
 import { glyphOf } from '../lib/glyphs.js'
 import { markAllSetsDone, sessionHistory } from '../lib/backfill.js'
 import { bestSetFor } from '../lib/exercise-history.js'
-import { isWarmupRow, isFailureSet, toggleFailure, isDropSet, isRestPauseSet, dropsOf, clustersOf, addDrop, addCluster, removeDropAt, removeClusterAt, setDropAt, setClusterAt, nextDropWeight, nextBurstReps, isSideSet, makeSideSet, setSideField, toggleSide, addSideDrop, removeSideDropAt, setSideDropAt, addSideCluster, removeSideClusterAt, setSideClusterAt, WEIGHT_ORIGIN_MANUAL } from '../lib/workout-model.js'
-import { canMoveActiveWorkoutUnit, moveActiveWorkoutUnit, canMoveActiveWorkoutEntry, moveActiveWorkoutEntry } from '../lib/active-workout-order.js'
+import { isWarmupRow, isFailureSet, toggleFailure, isDropSet, isRestPauseSet, dropsOf, clustersOf, addDrop, addCluster, removeDropAt, removeClusterAt, setDropAt, setClusterAt, nextDropWeight, nextBurstReps, isSideSet, makeSideSet, setSideField, setSideFieldMirrored, sideFollows, toggleSide, addSideDrop, removeSideDropAt, setSideDropAt, addSideCluster, removeSideClusterAt, setSideClusterAt, WEIGHT_ORIGIN_MANUAL } from '../lib/workout-model.js'
+import { canMoveActiveWorkoutUnit, moveActiveWorkoutUnit, canMoveActiveWorkoutEntry, moveActiveWorkoutEntry, moveActiveWorkoutUnitTo } from '../lib/active-workout-order.js'
+import { useListReorder } from '../lib/use-list-reorder.js'
 import { nextOpenSet, workoutKeyAction } from '../lib/workout-keys.js'
 import { MUSCLE_NAME } from '../lib/muscles.js'
 import FocusView from './FocusView.jsx'
@@ -105,7 +106,7 @@ const RTL_LETTER = /[֐-ࣿיִ-﷿ﹰ-﻿]/
 // enough to turn over, far shorter than the rest the set earns once both sides are held.
 const SWITCH_SIDES_SEC = 10
 
-function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSide, onField, onAddSet, onRemoveSet, onAddWarmup, onRemoveSetAt, onCopySetAt, onStartTimed, onPairPrev, onPairNext, onSetRowRef, onProgressionSettings, onRest, onNoProg, routineUpdate, onSwap, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onRemoveExercise, busy }) {
+function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSide, onField, onAddSet, onRemoveSet, onAddWarmup, onRemoveSetAt, onCopySetAt, onStartTimed, onPairPrev, onPairNext, onSetRowRef, onProgressionSettings, onRest, onNoProg, routineUpdate, onSwap, onReorder, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onRemoveExercise, busy }) {
   const S = useStore(s => s.S)
   const update = useStore(s => s.update)
   const working = useUI(s => s.work)
@@ -157,13 +158,16 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
   // stays right. The done tick goes through onToggleSide → toggle() instead, so ticking a side
   // still fires the rest timer / auto-advance / workout-complete flow.
   const setSide = (i, side, field, v) => {
-    if (field !== 'w') return mutSet(i, row => setSideField(row, side, field, v))
+    if (field !== 'w') return mutSet(i, row => setSideFieldMirrored(row, side, field, v))
     update(s => {
       const e = s.active.entries[entryIdx]
-      const row = setSideField(e.sets[i], side, field, v)
+      const follows = sideFollows(e.sets[i], side, field)
+      const row = setSideFieldMirrored(e.sets[i], side, field, v)
       row.sides[side].weightOrigin = WEIGHT_ORIGIN_MANUAL
+      if (follows) row.sides.R.weightOrigin = WEIGHT_ORIGIN_MANUAL
       e.sets[i] = row
       e.sets = cascadeWeight(e.sets, i, v, side, e.target?.backoffStep)
+      if (follows) e.sets = cascadeWeight(e.sets, i, v, 'R', e.target?.backoffStep)
     }, true)
   }
   // Drop/burst edits accept an optional `side` ('L'|'R'): present for a per-side row (edits that
@@ -363,6 +367,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
   // not a "Bar 50 lb".
   const loadSummary = loadKind === 'none' ? t('Off')
     : loadKind === 'single' ? t('Single stack')
+      : loadKind === 'pulley' ? t('Cable 2:1')
       : !usesBar(ex) ? t('Per side')
         : base > 0 ? t('Bar {0}', fmtNum(base) + ' ' + S.unit) : t('No bar')
   // The line under a set row (or a drop sub-row): shown on the first loaded row and whenever the
@@ -378,7 +383,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
     if (prev && sameLoad(prev, L)) return null
     // "+" between plates: "45 + 5 per side" reads as a sum, a dot did not (Boris, 2026-09-13).
     const stack = L.plates.map(w => fmtPlate(w)).join(' + ')
-    const text = L.barOnly ? t('Bar only')
+    const text = L.kind === 'pulley' ? t('Stack {0}', fmtNum(L.stack) + ' ' + S.unit) : L.barOnly ? t('Bar only')
       : L.kind === 'pairs' ? t('{0} per side', stack || '–') : t('Load {0}', stack || '–')
     const d = prev && !dense ? plateDelta(prev.plates, L.plates) : null
     const moves = d ? [...d.strip.map(w => '−' + fmtPlate(w)), ...d.add.map(w => '+' + fmtPlate(w))] : []
@@ -403,7 +408,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
       { title: t('Today'), items: [
         onSwap && { icon: 'swap', label: t('Swap exercise'), onClick: onSwap, disabled: busy },
         { icon: 'sunrise', label: t('Add warm-up set'), onClick: onAddWarmup },
-        { icon: 'note', label: entry.note ? t('Edit note') : t('Add note'), sub: entry.note || undefined, onClick: () => exerciseNoteSheet(entryIdx) },
+        { icon: 'note', label: entry.note || standingNote ? t('Edit note') : t('Add note'), sub: entry.note || standingNote || undefined, onClick: () => exerciseNoteSheet(entryIdx) },
         onNoProg && { icon: 'chartLineSlash', label: t('Don’t count for progression'), sub: t('This exercise, this session only'), on: entry.noProg === true, onClick: () => onNoProg(entry.noProg !== true) },
       ] },
       { title: t('Look it up'), items: [
@@ -417,6 +422,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
         routineUpdate && { icon: 'clipboard', label: t('Update routine'), sub: routineUpdate.sub, onClick: routineUpdate.run },
       ] },
       { title: t('Order and supersets'), items: [
+        onReorder && { icon: 'chevronsUpDown', label: t('Reorder exercises'), sub: t('Drag them into any order'), onClick: onReorder, disabled: busy },
         onPairPrev && { icon: 'link', label: t('Make superset with previous'), onClick: onPairPrev },
         onPairNext && { icon: 'link', label: t('Make superset with next'), onClick: onPairNext },
         onMoveUp && { icon: 'chevronUp', label: t('Move up'), onClick: onMoveUp, disabled: busy || !canMoveUp },
@@ -442,11 +448,12 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
       subtitle: setLabel(entry.id, s, entry.target, speedUnit),
       sections: [
         // A warm-up logged as a work set (or the other way round) changes phase here. Reps sets
-        // only, the kind a warm-up is added as; one work set always stays, and a per-side
-        // exercise's work sets keep their sides, so a warm-up there is not made one again.
+        // only, the kind a warm-up is added as; one work set always stays. A per-side set keeps
+        // its L/R either way (a set that turned out too light is a warm-up after all), so only
+        // an older warm-up there without sides stays one.
         { items: [
           !warm && mode === 'reps' && canBeWarmup(s) && entry.sets.some((x, j) => j !== i && !isWarmupRow(x)) && { icon: 'sunrise', label: t('Make it a warm-up set'), onClick: () => setPhaseAt(i, true) },
-          warm && mode === 'reps' && !perSide && { icon: 'dumbbell', label: t('Count it as a working set'), onClick: () => setPhaseAt(i, false) },
+          warm && mode === 'reps' && (!perSide || isSideSet(s)) && { icon: 'dumbbell', label: t('Count it as a working set'), onClick: () => setPhaseAt(i, false) },
           // Taken to failure: a toggle with its check, like the menu's other on/off rows. It counts
           // as RIR 0 wherever effort is read, unless a rating was logged on the set. A timed
           // per-side pair is one set, so both halves get it.
@@ -636,7 +643,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
       {thumb && <WorkoutThumb ex={ex} onExpand={() => update(s => { s.gifSize = 'full' })} />}
       <div style={{ flex: 1, minWidth: 0, fontSize: (compact || dense) ? 17 : 20, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1.2 }} className={exerciseNameClass(ex)}>{exerciseNameFor(ex)}</div>
       <div className="row" style={{ gap: 2, flex: 'none' }}>
-        {entry.note && <button className="iconbtn" aria-label={t('Note')} title={t('Note')} style={{ color: 'var(--acc)' }}
+        {(entry.note || standingNote) && <button className="iconbtn" aria-label={t('Note')} title={t('Note')} style={{ color: 'var(--acc)' }}
           onClick={() => exerciseNoteSheet(entryIdx)}><Icon name="note" /></button>}
         <button className="iconbtn" aria-label={t('More')} title={t('More')} onClick={openMore}><Icon name="more" /></button>
       </div>
@@ -654,8 +661,23 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
       {onPairPrev && <Button size="xs" variant="tinted" icon="link" title={t('Make superset with previous')} onClick={onPairPrev}>{t('Make superset with previous')}</Button>}
       {onPairNext && <Button size="xs" variant="tinted" icon="link" title={t('Make superset with next')} onClick={onPairNext}>{t('Make superset with next')}</Button>}
     </div>}
+    {/* Three notes can apply to one exercise and they are not interchangeable, so each keeps its
+        own line and its own icon: the plan's instruction (cfg.note, from the routine), the
+        standing fact about the movement (exNotes), and the message you pinned to yourself last
+        session. Today's own note is edited through the button in the header and shown last. All
+        of them show in every view, compact included: a seat height is needed most in a hurry. */}
+    {cfg.note && <div className="exnote">{cfg.note}</div>}
+    {standingNote && <div className="exsetup" aria-label={t('Machine setup')}>
+      <Icon name="info" style={{ fontSize: 14, color: 'var(--label-2)' }} />
+      {setupChips(standingNote).map((chip, i) => <span key={i} className="exsetup-chip">{chip}</span>)}
+    </div>}
+    {pinnedNote && <div className="exnote" style={{ color: 'var(--yellow-ink)' }}>
+      <Icon name="pin" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />
+      {t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}
+    </div>}
+    {entry.note && <div className="exnote">{entry.note}</div>}
     {/* compact view drops everything from here to the sets card — it is all still on the ⋯ menu
-        (note, details, history, bar weight, progression) or is display-only (tags, "last time"). */}
+        (details, history, bar weight, progression) or is display-only (tags, "last time"). */}
     {!dense && <>
     <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
       {cardio && <span className="tag acc"><Icon name="figureRun" />{t('Cardio')}</span>}
@@ -668,20 +690,6 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
       {ex.eq && <span className="tag">{t(ex.eq)}</span>}
       {best > 0 && <span className="tag nocap">{t('Best:')} {fmtNum(best)} {S.unit}</span>}
     </div>
-    {/* Three notes can apply to one exercise and they are not interchangeable, so each keeps its
-        own line and its own icon: the plan's instruction (cfg.note, from the routine), the
-        standing fact about the movement (exNotes), and the message you pinned to yourself last
-        session. Today's own note is edited through the button in the header and shown last. */}
-    {cfg.note && <div className="exnote">{cfg.note}</div>}
-    {standingNote && <div className="exsetup" aria-label={t('Machine setup')}>
-      <Icon name="info" style={{ fontSize: 14, color: 'var(--label-2)' }} />
-      {setupChips(standingNote).map((chip, i) => <span key={i} className="exsetup-chip">{chip}</span>)}
-    </div>}
-    {pinnedNote && <div className="exnote" style={{ color: 'var(--yellow)' }}>
-      <Icon name="pin" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />
-      {t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}
-    </div>}
-    {entry.note && <div className="exnote">{entry.note}</div>}
     {planLine}
     {refLine}
     {guidance && onProgressionSettings && <button type="button" className={'progline' + (plan.kind === 'deload' ? ' warn' : '')}
@@ -919,6 +927,36 @@ const coveredTop = () => {
   const inset = probe.offsetHeight || 0
   probe.remove()
   return inset
+}
+
+// The whole session on one list, each block (a lone exercise, or a superset as one row) with a
+// handle: drag it anywhere in one go, instead of Move up / Move down one place per tap from the
+// exercise's menu. Reads the entries live, so each drop shows at once; `onMove` is the workout's
+// own move, which keeps the rest timer and the progress bookkeeping on their exercises.
+function ReorderSession({ onMove, close }) {
+  const entries = useStore(s => s.S.active?.entries)
+  const cur = useStore(s => s.S.active?.cur)
+  const units = entries ? supersetUnits(entries) : []
+  const reorder = useListReorder(units.length, onMove)
+  useEffect(() => { if (!entries) close() }, [!entries])
+  if (!entries) return null
+  const finished = unit => unit.every(i => entries[i].sets.length > 0 && entries[i].sets.every(s => s.done))
+  return <>
+    <h3>{t('Reorder exercises')}</h3>
+    <div className="small muted" style={{ marginBottom: 10 }}>{t('Drag the handle to move an exercise. A superset moves as one.')}</div>
+    <div className="list reorder-session" ref={reorder.listRef}>{units.map((unit, i) =>
+      <div key={entries[unit[0]].occurrenceId || unit.map(j => entries[j].id).join('+') + ':' + unit[0]} data-reorder-row
+        className={'item' + (finished(unit) ? ' is-done' : '')} style={reorder.rowStyle(i)}>
+        <span className="lrow-i"><Icon name={finished(unit) ? 'check' : unit.length > 1 ? 'link' : 'dumbbell'} /></span>
+        <div className="grow">{unit.map(j => <div key={j} className={'tt ' + exerciseNameClass(exOr(entries[j].id))}>
+          {exerciseNameFor(exOr(entries[j].id))}{j === cur && <span className="tag acc" style={{ marginInlineStart: 6 }}>{t('Current')}</span>}
+        </div>)}</div>
+        {units.length > 1 && <button className="plan-handle" aria-label={t('Move {0}', exerciseNameFor(exOr(entries[unit[0]].id)))} title={t('Drag to reorder')}
+          {...reorder.handle(i)}><Icon name="chevronsUpDown" /></button>}
+      </div>)}</div>
+    <div style={{ height: 14 }} />
+    <Button variant="primary" onClick={close}>{t('Done')}</Button>
+  </>
 }
 
 function ActiveWorkout() {
@@ -1223,6 +1261,26 @@ function ActiveWorkout() {
   }
 
   const moveCurrentUnit = direction => moveUnitAt(cur, direction)
+  // The reorder sheet's drop: a block from one place to another in one move, remapped the same
+  // way as a step of moveUnitAt.
+  const moveUnitTo = (from, to) => {
+    const ui = useUI.getState()
+    if (ui.work) return
+    ui.stopWork()
+    focusPointerEpoch.current++
+    update(s => {
+      const moved = moveActiveWorkoutUnitTo(s.active, from, to)
+      if (!moved) return
+      lastCur.current = s.active.cur
+      progressHighWater.current = moved.indices.map(index => progressHighWater.current[index])
+      const rest = useUI.getState().timer
+      if (rest && rest.forIdx != null) {
+        const forIdx = moved.indices.indexOf(rest.forIdx)
+        if (forIdx >= 0) useUI.setState({ timer: { ...rest, forIdx } })
+      }
+    }, true)
+  }
+  const reorderSheet = () => useUI.getState().openSheet(close => <ReorderSession onMove={moveUnitTo} close={close} />)
 
   // "Don't count for progression" from an exercise's ⋯ menu (Discord, asierlama: an injury day).
   // It stamps the entry's `noProg`, the flag a deload routine freezes onto its entries: the saved
@@ -1287,6 +1345,7 @@ function ActiveWorkout() {
   const blockProps = idx => ({
     editing,
     onSwap: () => swapExercise(idx),
+    onReorder: units.length > 1 ? reorderSheet : null,
     onMoveUp: () => moveUnitAt(idx, -1, true),
     onMoveDown: () => moveUnitAt(idx, 1, true),
     canMoveUp: canMoveActiveWorkoutEntry(A, idx, -1),
@@ -2055,6 +2114,7 @@ function ActiveWorkout() {
     {!listMode && <div style={{ height: 10 }} />}
     {wc.exerciseButtons && listMode && A.entries.length > 0 && <div className="muted small" style={{ marginBottom: 6 }}>{t('Move, swap and remove below act on the exercise marked {0}.', t('Current'))}</div>}
     <Button onClick={addExercise} icon="plus">{t('Add exercise')}</Button>
+    {units.length > 1 && <><div style={{ height: 6 }} /><Button icon="chevronsUpDown" disabled={!!work} onClick={reorderSheet}>{t('Reorder exercises')}</Button></>}
     {wc.exerciseButtons && A.entries.length > 0 && <>
       <div style={{ height: 6 }} />
       <div className="row">

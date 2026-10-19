@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canMoveActiveWorkoutUnit, moveActiveWorkoutUnit, canMoveActiveWorkoutEntry, moveActiveWorkoutEntry } from './active-workout-order.js'
+import { canMoveActiveWorkoutUnit, moveActiveWorkoutUnit, canMoveActiveWorkoutEntry, moveActiveWorkoutEntry, moveActiveWorkoutUnitTo } from './active-workout-order.js'
 import { supersetFlowStep } from './supersetFlow.js'
 import { supersetUnits } from './history.js'
 import { LANGS, DERIVED_LOCALES } from './i18n-core.js'
@@ -169,6 +169,29 @@ describe('active workout member move (the exercise ⋯ menu)', () => {
     const active = { cur: 0, entries: [entry('a1', { sg: 'a' }), entry('a2', { sg: 'a' }), entry('b1', { sg: 'b' }), entry('b2', { sg: 'b' })] }
     expect(moveActiveWorkoutEntry(active, 1, 1)?.indices).toEqual([2, 3, 0, 1])
     expect(active.entries.map(item => `${item.id}:${item.sg}`)).toEqual(['b1:b', 'b2:b', 'a1:a', 'a2:a'])
+  })
+})
+
+describe('active workout move to (the reorder sheet)', () => {
+  it('drags a lone exercise several places at once and keeps the marker on its exercise', () => {
+    const active = { cur: 1, entries: [entry('a'), entry('b'), entry('c'), entry('d')] }
+    expect(moveActiveWorkoutUnitTo(active, 3, 0)?.indices).toEqual([3, 0, 1, 2])
+    expect(active.entries.map(e => e.id)).toEqual(['d', 'a', 'b', 'c'])
+    expect(active.cur).toBe(2)
+  })
+
+  it('moves a superset as one block, past another block', () => {
+    const active = { cur: 0, entries: [entry('a'), entry('s1', { sg: 'x' }), entry('s2', { sg: 'x' }), entry('d')] }
+    expect(moveActiveWorkoutUnitTo(active, 1, 2)?.indices).toEqual([0, 3, 1, 2])
+    expect(active.entries.map(e => e.id)).toEqual(['a', 'd', 's1', 's2'])
+    expect(active.cur).toBe(0)
+  })
+
+  it('refuses a move to the same place or off the list', () => {
+    const active = { cur: 0, entries: [entry('a'), entry('b')] }
+    expect(moveActiveWorkoutUnitTo(active, 1, 1)).toBeNull()
+    expect(moveActiveWorkoutUnitTo(active, 0, 2)).toBeNull()
+    expect(active.entries.map(e => e.id)).toEqual(['a', 'b'])
   })
 })
 

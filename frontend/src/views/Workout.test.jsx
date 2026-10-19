@@ -1651,7 +1651,7 @@ describe('workout focus view', () => {
     expect(buttonNamed('RPE').disabled).toBe(true)
   })
 
-  it('renders and updates independent unilateral sides', async () => {
+  it('renders unilateral sides: the right follows the left until edited on its own', async () => {
     await mount([exercise('split-squat', [false], {
       target: { mode: 'reps', reps: 10, weight: 20, side: true },
       sets: [{
@@ -1665,6 +1665,9 @@ describe('workout focus view', () => {
 
     expect(container.querySelectorAll('[data-focus-side]').length).toBe(2)
     await click(container.querySelector('[data-focus-side="L"] button[aria-label="Increase reps"]'))
+    expect(mocks.S.active.entries[0].sets[0].sides.L.r).toBe(6)
+    expect(mocks.S.active.entries[0].sets[0].sides.R.r).toBe(6)
+    await click(container.querySelector('[data-focus-side="R"] button[aria-label="Decrease reps"]'))
     expect(mocks.S.active.entries[0].sets[0].sides.L.r).toBe(6)
     expect(mocks.S.active.entries[0].sets[0].sides.R.r).toBe(5)
     await click(container.querySelector('[data-focus-side="L"] button[aria-label="Complete left side"]'))
@@ -3392,7 +3395,7 @@ describe('the workout screen chrome (v1.3.11)', () => {
       ['Today', ['Swap exercise', 'Add warm-up set', 'Add note', 'Don’t count for progression']],
       ['Look it up', ['History', 'How to do it']],
       ['Settings', ['Exercise settings', 'Rest timer', 'Plate loading']],
-      ['Order and supersets', ['Make superset with next', 'Move up', 'Move down']],
+      ['Order and supersets', ['Reorder exercises', 'Make superset with next', 'Move up', 'Move down']],
       [undefined, ['Remove exercise']],
     ])
   })

@@ -79,3 +79,22 @@ export function moveActiveWorkoutEntry(active, index, direction) {
   active.entries.splice(0, active.entries.length, ...reorderedEntries)
   return { indices }
 }
+
+// The reorder sheet's drag: the block (a lone exercise, or a whole superset) at unit `from` lands
+// at unit `to` in one move, the blocks between sliding one place over. The marker stays on the
+// exercise it was on, wherever that ends up: dragging another block past it is not a choice of
+// what to do next. Same { indices } permutation as the moves above; null when nothing moves.
+export function moveActiveWorkoutUnitTo(active, from, to) {
+  if (!active || !Array.isArray(active.entries)) return null
+  const units = supersetUnits(active.entries)
+  if (from === to || from < 0 || to < 0 || from >= units.length || to >= units.length) return null
+  const current = active.entries[active.cur]
+  const reorderedUnits = [...units]
+  const [unit] = reorderedUnits.splice(from, 1)
+  reorderedUnits.splice(to, 0, unit)
+  const indices = reorderedUnits.flat()
+  const reorderedEntries = indices.map(entryIndex => active.entries[entryIndex])
+  active.entries.splice(0, active.entries.length, ...reorderedEntries)
+  if (current) active.cur = active.entries.indexOf(current)
+  return { indices }
+}

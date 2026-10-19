@@ -76,3 +76,11 @@ export function finishCardio(w) {
   }
   return rows
 }
+
+/** The set a record is read off, for the summary's record list: the heaviest, and of those the
+ *  one with the most reps. `sets` as finishCompare gives them ({ w, r }); null for none. */
+export function topSet(sets) {
+  let best = null
+  for (const s of sets || []) if (!best || s.w > best.w || (s.w === best.w && s.r > best.r)) best = s
+  return best
+}
