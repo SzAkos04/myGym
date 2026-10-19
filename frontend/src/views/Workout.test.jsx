@@ -1667,6 +1667,7 @@ describe('workout focus view', () => {
     await click(container.querySelector('[data-focus-side="L"] button[aria-label="Increase reps"]'))
     expect(mocks.S.active.entries[0].sets[0].sides.L.r).toBe(6)
     expect(mocks.S.active.entries[0].sets[0].sides.R.r).toBe(6)
+    await rerender()
     await click(container.querySelector('[data-focus-side="R"] button[aria-label="Decrease reps"]'))
     expect(mocks.S.active.entries[0].sets[0].sides.L.r).toBe(6)
     expect(mocks.S.active.entries[0].sets[0].sides.R.r).toBe(5)
