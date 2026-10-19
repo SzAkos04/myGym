@@ -44,6 +44,9 @@ const drainScrollRestore = close => {
   }
 }
 
+// The copy of a sheet that closed in the commit now running, for a sheet that opens in the same one.
+let handoverGhost = null
+
 // One bottom sheet (or centered dialog) with swipe-to-dismiss.
 function Sheet({ sheet }) {
   const { closeSheet } = useUI()
@@ -59,13 +62,34 @@ function Sheet({ sheet }) {
   // Skipped under test, where a lingering copy would only get in the way of what the tests look up.
   useLayoutEffect(() => {
     const el = rootRef.current
+    // A sheet opened in the same commit a menu closed in (an item that opens the next sheet): the
+    // menu slides away beneath it, and one backdrop stays put rather than one fading out while the
+    // other fades in.
+    if (el && handoverGhost) {
+      const ghost = handoverGhost
+      handoverGhost = null
+      ghost.querySelector(':scope > .mback')?.remove()
+      const host = el.closest('#modal-root')
+      if (host) host.parentNode.insertBefore(ghost, host)
+      const back = el.querySelector(':scope > .mback')
+      if (back) back.style.animation = 'none'
+    }
     return () => {
       if (!el || import.meta.env.MODE === 'test' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+      // Only a sheet that really closed. StrictMode (dev) unmounts every sheet once as it opens,
+      // which left a copy of each new sheet dropping away while the real one came up.
+      if (useUI.getState().sheets.some(s => s.id === sheet.id)) return
       const ghost = document.createElement('div')
       ghost.className = 'ghost-layer'
       ghost.setAttribute('aria-hidden', 'true')
       for (const child of el.children) ghost.appendChild(child.cloneNode(true))
       document.body.appendChild(ghost)
+      // A copy starts at the top of its content; the sheet may have been scrolled.
+      const panel = el.querySelector(':scope > .sheet, :scope > .center'), copy = ghost.querySelector(':scope > .sheet, :scope > .center')
+      if (panel && copy) copy.scrollTop = panel.scrollTop
+      // A sheet mounting in this same commit runs its layout effect after this cleanup.
+      handoverGhost = ghost
+      queueMicrotask(() => { if (handoverGhost === ghost) handoverGhost = null })
       setTimeout(() => ghost.remove(), 320)
     }
   }, [])

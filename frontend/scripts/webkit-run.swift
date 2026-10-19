@@ -39,5 +39,6 @@ cfg.websiteDataStore.httpCookieStore.setCookie(cookie) {
     }
   }
 }
-DispatchQueue.main.asyncAfter(deadline: .now() + 60) { print("timed out"); exit(1) }
+// A flow that walks a whole menu takes a minute or two; past this it is stuck, not slow.
+DispatchQueue.main.asyncAfter(deadline: .now() + 300) { print("timed out"); exit(1) }
 app.run()
