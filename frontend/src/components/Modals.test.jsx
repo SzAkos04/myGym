@@ -116,6 +116,12 @@ describe('Modals sheet history accounting', () => {
     expect(historyMock.go).not.toHaveBeenCalled()
   })
 
+  it("keeps the router's index on a sheet's entry, so a screen opened over it still counts on from it", async () => {
+    historyMock.state = { usr: null, key: 'k1', idx: 3 }
+    await setSheets([sheet('one')])
+    expect(historyMock.pushState).toHaveBeenCalledWith({ usr: null, key: 'k1', idx: 3, openGymSheet: true }, '')
+  })
+
   it('pushes and rewinds the exact number of entries for batched sheets', async () => {
     await setSheets([sheet('one'), sheet('two')])
     expect(historyMock.pushState).toHaveBeenCalledTimes(2)

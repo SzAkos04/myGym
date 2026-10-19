@@ -180,7 +180,11 @@ export default function Modals() {
     if (sheets.length > prev) {
       for (let i = prev; i < sheets.length; i++) {
         sheetEntries.current.push({ openedAt: location.href, live: true })
-        history.pushState({ openGymSheet: true }, '')
+        // The router's own state (its idx) rides along: a screen opened while this entry is the
+        // current one would otherwise count from no index at all, and from then on every entry
+        // reads as the first, so a back button that asks "is there a way back?" (views/Settings.jsx)
+        // hears no and jumps up a level unanimated instead of stepping back.
+        history.pushState({ ...history.state, openGymSheet: true }, '')
         pushedEntries.current++
       }
     } else if (sheets.length < prev) {

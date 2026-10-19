@@ -82,7 +82,10 @@ export default function ViewRouter({ children }) {
     logical.current = null
     const next = { ...update, action }
     // A redirect (REPLACE) is not a screen the user went to; a change of query only is not a new screen.
-    const dir = action === 'REPLACE' ? 'none' : motionDir(prev, update.location.pathname, action)
+    // Except the "up one level" a back button falls back on when nothing was left behind
+    // (views/Settings.jsx): that one still steps out, as lib/use-screen-motion.js has it.
+    const step = motionDir(prev, update.location.pathname, action)
+    const dir = action === 'REPLACE' && step !== 'pop' ? 'none' : step
     if (dir === 'none' || !canTransition()) { setState(next); return }
     const root = document.documentElement
     root.dataset.vt = dir
