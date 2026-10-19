@@ -156,6 +156,13 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
 - **Updating the server** after a merge (from the Mac, needs `sshd` running on Windows):
   `ssh SzAko@csodabogar2 "cd C:\Users\SzAko\Documents\opengym && git pull && docker compose up -d --build"`.
   Frontend-only changes need only the `web` service rebuilt; a change in `api/` needs `api` too.
+- **SSH to the server:** user `SzAko` is a Microsoft account, so a password login wants the
+  Microsoft account password (not the Windows PIN). Key login: the Mac's public key goes in
+  `C:\ProgramData\ssh\administrators_authorized_keys` (an admin account ignores `~/.ssh`). The
+  host keys were generated 2026-10-19, so an older `known_hosts` entry on the Mac is stale
+  (`ssh-keygen -R csodabogar2`). Docker Desktop must be running in the user's session for
+  `docker` to answer over SSH. The server checkout has `core.filemode false`: Windows reports the
+  scripts' exec bit as a change otherwise.
 
 ### Tests on the Mac
 
