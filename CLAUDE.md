@@ -187,6 +187,10 @@ not work on `localhost`. Develop against a local API with its own test data inst
     cd api && DATA_DIR=../data ORIGIN=http://localhost:5173 npm start      # terminal 1
     cd frontend && API_ORIGIN=http://localhost:5173 npm run dev              # terminal 2
 
-Create a test profile on `http://localhost:5173`; it lives only in the Mac's `data/`. Real data:
+Create a test profile on `http://localhost:5173`; it lives only in the Mac's `data/`.
+A browser that cannot use a passkey (Claude's browser pane) is signed in with a cookie minted from
+`data/secret`: `cd api && DATA_DIR=../data node scripts/dev-session.mjs <id>` (no id lists the
+profiles), then `document.cookie = '<printed line>; path=/'` on the localhost page and reload. The
+profile with workout data is the one with a `data/state-<id>.json`. Real data:
 export a backup from the live app (Settings) and import it into the test profile. Phone layout:
 Safari → Develop → Enter Responsive Design Mode (Option-Cmd-R).
