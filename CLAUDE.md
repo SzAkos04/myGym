@@ -191,6 +191,14 @@ Create a test profile on `http://localhost:5173`; it lives only in the Mac's `da
 A browser that cannot use a passkey (Claude's browser pane) is signed in with a cookie minted from
 `data/secret`: `cd api && DATA_DIR=../data node scripts/dev-session.mjs <id>` (no id lists the
 profiles), then `document.cookie = '<printed line>; path=/'` on the localhost page and reload. The
-profile with workout data is the one with a `data/state-<id>.json`. Real data:
+profile with workout data is the one with a `data/state-<id>.json`.
+
+Safari-only bugs: the browser pane is Chromium, and Safari's WebDriver (`safaridriver`) hangs on
+this Mac even with remote automation allowed. `frontend/scripts/webkit-run.swift` runs the page in
+WebKit instead: `swift frontend/scripts/webkit-run.swift 'http://localhost:5173/#/home'
+"$(cd api && DATA_DIR=../data node scripts/dev-session.mjs <id>)" flow.js`, where `flow.js` is an
+async function body that clicks, waits and returns what it saw (e.g. wrap
+`document.startViewTransition` to log each screen transition). It opens a window, so run it
+outside the sandbox. Real data:
 export a backup from the live app (Settings) and import it into the test profile. Phone layout:
 Safari → Develop → Enter Responsive Design Mode (Option-Cmd-R).
