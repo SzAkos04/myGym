@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
@@ -36,18 +36,35 @@ import MobileOnboarding from './views/MobileOnboarding.jsx'
 import Home from './views/Home.jsx'
 import CheckIn from './views/CheckIn.jsx'
 import Plan from './views/Plan.jsx'
-import RoutineEdit from './views/RoutineEdit.jsx'
 import Workout from './views/Workout.jsx'
-import Stats from './views/Stats.jsx'
-import History from './views/History.jsx'
 import Library from './views/Library.jsx'
-import Muscles from './views/Muscles.jsx'
-import StructuralBalance from './views/StructuralBalance.jsx'
-import ProgressPhotos from './views/ProgressPhotos.jsx'
-import { SettingsRoute } from './views/Settings.jsx'
-import Admin from './views/Admin.jsx'
+// myGym Lite: the screens off the daily path (Home, Workout, Plan, Exercises) load on their own, so a start
+// parses less. Once the app is up and idle they are fetched in the background, so a tap finds them ready.
+// Not React.lazy: that suspends once on first render even when the code is already in, and React holds a
+// suspended screen back for about 300 ms, so the slide-in played over an empty page. A screen whose code
+// is loaded renders at once; one that is not yet renders nothing until it is, then itself.
+function onDemand(load, pick = m => m.default) {
+  let Comp = null
+  const get = () => load().then(m => (Comp = pick(m)))
+  function Screen(props) {
+    const [, loaded] = useState(0)
+    useEffect(() => { if (!Comp) get().then(() => loaded(n => n + 1), () => {}) }, [])
+    return Comp ? <Comp {...props} /> : null
+  }
+  Screen.preload = () => get().catch(() => {})
+  return Screen
+}
+const RoutineEdit = onDemand(() => import('./views/RoutineEdit.jsx'))
+const Stats = onDemand(() => import('./views/Stats.jsx'))
+const History = onDemand(() => import('./views/History.jsx'))
+const Muscles = onDemand(() => import('./views/Muscles.jsx'))
+const StructuralBalance = onDemand(() => import('./views/StructuralBalance.jsx'))
+const ProgressPhotos = onDemand(() => import('./views/ProgressPhotos.jsx'))
+const Admin = onDemand(() => import('./views/Admin.jsx'))
+const Measurements = onDemand(() => import('./views/Measurements.jsx'))
+const SettingsRoute = onDemand(() => import('./views/Settings.jsx'), m => m.SettingsRoute)
+const preloadScreens = () => { for (const S of [RoutineEdit, Stats, History, Muscles, StructuralBalance, ProgressPhotos, Admin, Measurements, SettingsRoute]) S.preload() }
 import CoachChat from './views/CoachChat.jsx'
-import Measurements from './views/Measurements.jsx'
 import CoachIntake from './views/CoachIntake.jsx'
 import CoachSetup from './views/CoachSetup.jsx'
 import { COACH, CHECKIN } from './lib/fork-profile.js'
@@ -130,6 +147,12 @@ function Shell() {
   const pathRef = useRef(null)
   // iOS leaves the page displaced after the keyboard goes away (see lib/viewport-guard.js).
   useEffect(() => installViewportGuard(), [])
+  // The lazy screens, fetched once the start is over: two seconds in, then when the main thread is idle.
+  useEffect(() => {
+    const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1))
+    const t = setTimeout(() => idle(preloadScreens), 2000)
+    return () => clearTimeout(t)
+  }, [])
   // Click-drag a horizontal chip strip to scroll it sideways (lib/hchips.js) — on a desktop
   // browser there's otherwise no way to reach the filters past the edge.
   useEffect(() => installChipDrag(), [])
