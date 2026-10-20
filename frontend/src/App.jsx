@@ -21,7 +21,8 @@ import EdgeSwipeBack from './components/EdgeSwipeBack.jsx'
 import { installChipDrag } from './lib/hchips.js'
 import { syncPushSubscription } from './lib/push.js'
 import { MOBILE } from './lib/mobile.js'
-import { exitWorkoutEdit, startFlow } from './sheets.jsx'
+import { exitWorkoutEdit } from './sheets.jsx'
+import { workoutPreviewSheet } from './components/HomeWorkout.jsx'
 import Icon from './components/Icon.jsx'
 import TabBar from './components/TabBar.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
@@ -269,7 +270,7 @@ function Shell() {
           including on the sign-in screen, when the server has just ended the session. */}
       <SyncBanner />
       <EdgeSwipeBack />
-      {!noTabs && <TabBar onStart={startFlow} />}
+      {!noTabs && <TabBar onStart={workoutPreviewSheet} />}
       <RestTimer />
       <Modals />
       <Toast />
