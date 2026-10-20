@@ -73,7 +73,7 @@ export function LastWorkoutCard() {
   return <div className="card tappable last-workout" style={{ cursor: 'pointer' }} {...tappable(() => { if (w) workoutDetailSheet(w) })}>
     <div className="row between">
       <div className="row" style={{ gap: 11, minWidth: 0 }}>
-        <span className="lrow-i" style={{ background: 'var(--surface-3)' }}><Icon name="history" /></span>
+        <span className="lrow-i" style={{ background: 'var(--surface-3)', color: 'var(--label-2)' }}><Icon name="history" /></span>
         <div style={{ minWidth: 0 }}>
           <div className="lbl2">{t('Last workout')} · {fmtDate(sum.d, true)}</div>
           <div className="ttl">{sum.name || t('Workout')}</div>

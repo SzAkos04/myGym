@@ -2547,10 +2547,42 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
    36px above). */
 .hdr:not(.whdr-bar) .iconbtn:not([style]),.sp-back{width:44px;height:44px;font-size:24px}
 .sp-back .icn{font-size:24px}
-.hdr:not(.whdr-bar)>.iconbtn,.hdr>.hdr-btns,.hdr>.hdr-actions{align-self:flex-start;margin-top:-4px}
-@media (max-width:420px){.hdr:not(.whdr-bar)>.iconbtn,.hdr>.hdr-btns,.hdr>.hdr-actions{margin-top:-6px}}
+.hdr:has(h1)>.iconbtn,.hdr:has(h1)>.hdr-btns,.hdr:has(h1)>.hdr-actions{align-self:flex-start;margin-top:-4px}
+@media (max-width:420px){.hdr:has(h1)>.iconbtn,.hdr:has(h1)>.hdr-btns,.hdr:has(h1)>.hdr-actions{margin-top:-6px}}
+/* A header with no title, the routine editor's name field between two buttons: all three on one centre. */
+.hdr:not(:has(h1)):not(.whdr-bar){align-items:center}
 /* Home's server cloud beside the gear: drawn in the gear's colour while all is well, so the two read
    as a pair of the same size; the state stays in a smaller corner badge (and in the cloud's colour
    when something is wrong). */
 .sync-cloud.ok{color:var(--label)}
 .sync-cloud-b{width:14px;height:14px;right:0;bottom:0}
+
+/* ---- myGym: fixes from a sweep of every screen at iPhone 11 Pro Max size ---- */
+/* Sub-screens with a back button and a large title (History, Body measurements, Muscles, Progress
+   photos, Structural balance, Admin) put the button on a row of its own above the title, the way
+   Settings does, instead of squeezing the title beside it: "Body measurements" broke onto two
+   lines between the back button and the gear. One layout for every screen with a way back. */
+.hdr:has(h1):has(>.iconbtn:first-child){flex-wrap:wrap;row-gap:10px}
+.hdr:has(h1)>.iconbtn:first-child{margin-inline-end:calc(100% - 44px);margin-top:0}
+.hdr:has(h1)>.iconbtn:first-child+div{margin-left:0 !important;margin-inline-start:0 !important}
+/* Settings' back button stood 6px left of the page edge every other screen's sits on. */
+.sp-nav{margin-inline:0}
+/* The workout's own bar: its buttons as large as every other screen's header buttons. */
+.hdr.whdr-bar>.iconbtn{width:44px;height:44px;font-size:22px}
+.whdr-finish{min-height:44px;padding-inline:18px}
+/* Dark segmented controls: the selected thumb was darker than its track, so the choice read as a
+   hole; it is the raised, lighter part, as it is in the light theme and on iOS. */
+.seg-sel{background:#57524d}
+/* Stats' Muscle balance / Fatigue / Strength: "Muscle balance" broke onto two lines in its third of
+   the card; the range rows (1M · 3M …) use the same class and lose nothing. */
+.seg-range button{white-space:nowrap;padding-inline:4px}
+/* A list row's meta line ("Mon 19 Oct · 1 min · 16 sets · 4,510 kg") breaks between its parts, never inside one (sheets.jsx WorkoutRow). */
+.nowrap{white-space:nowrap}
+/* Home's streak card had a chevron a size larger and bolder than every other card's. */
+.streak .chev{font-size:15px !important}
+/* Last workout (components/HomeWorkout.jsx): a small label over its title, as the Today and pass
+   cards have, instead of two lines of one size. */
+.last-workout .lbl2{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label-3)}
+.last-workout .ttl{font-size:18px;font-weight:700;letter-spacing:-.015em;margin-top:2px}
+/* Exercises: the best weight on a row now carries its unit ("15 kg"), not capitalised with the row. */
+.item>.tag.acc{text-transform:none}
