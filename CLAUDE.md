@@ -195,6 +195,14 @@ A browser that cannot use a passkey (Claude's browser pane) is signed in with a 
 profiles), then `document.cookie = '<printed line>; path=/'` on the localhost page and reload. The
 profile with workout data is the one with a `data/state-<id>.json`.
 
+iPhone checks in the iOS Simulator (Xcode set up; an "iPhone 11 Pro Max test" device exists, the
+user's phone): serve the production build with a session, `cd frontend && npm run build &&
+DEV_SESSION=<value from dev-session.mjs, without gymsid=> API_ORIGIN=http://localhost:4173 npx vite preview --port 4173`,
+then open `http://localhost:4173/` in the Simulator's Safari and Share → Add to Home Screen ("Open as
+Web App"): that home-screen app is the code path the phone runs. DEV_SESSION signs every cookie-less
+request in (dev and preview servers only, never a build); `/__dev-session?c=<value>` does it for one
+browser. Record with `xcrun simctl io <udid> recordVideo --codec h264 out.mp4` and read the frames.
+
 Safari-only bugs: the browser pane is Chromium, and Safari's WebDriver (`safaridriver`) hangs on
 this Mac even with remote automation allowed. `frontend/scripts/webkit-run.swift` runs the page in
 WebKit instead: `swift frontend/scripts/webkit-run.swift 'http://localhost:5173/#/home'

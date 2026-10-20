@@ -165,10 +165,39 @@ const forkStubs = {
   }
 }
 
+// Dev only (the dev and preview servers, never a build): sign a browser in that has no console to set the
+// session cookie on, such as Safari in the iOS Simulator. Open /__dev-session?c=<value>, the value from
+// api/scripts/dev-session.mjs; the cookie is set for this localhost origin and the app opens. Anyone able
+// to reach a dev server on localhost could set a cookie there anyway.
+const devSession = {
+  name: 'mygym-dev-session',
+  configureServer(server) { server.middlewares.use(devSessionRoute) },
+  configurePreviewServer(server) { server.middlewares.use(devSessionRoute) },
+}
+function devSessionRoute(req, res, next) {
+  const host = String(req.headers.host || '').split(':')[0]
+  // DEV_SESSION=<value> on the server: every request without a session gets it, so a home-screen web app
+  // (its own cookies, no address bar to open the route below in) is signed in from its next load.
+  const auto = process.env.DEV_SESSION
+  if (auto && ['localhost', '127.0.0.1', '[::1]'].includes(host) && !/(?:^|;\s*)gymsid=/.test(req.headers.cookie || '')) {
+    res.setHeader('Set-Cookie', `gymsid=${auto}; Path=/; SameSite=Lax; Max-Age=7776000`)
+    // …and this request carries it already, so the API it is proxied to answers signed in.
+    req.headers.cookie = (req.headers.cookie ? req.headers.cookie + '; ' : '') + `gymsid=${auto}`
+  }
+  if (!req.url?.startsWith('/__dev-session')) return next()
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(host)) { res.statusCode = 403; return res.end('localhost only') }
+  const c = new URL(req.url, 'http://x').searchParams.get('c') || ''
+  if (!/^[A-Za-z0-9_-]+:\d+:\d+\.[A-Za-z0-9_-]+$/.test(c)) { res.statusCode = 400; return res.end('expected the value dev-session.mjs prints after gymsid=') }
+  res.statusCode = 302
+  res.setHeader('Set-Cookie', `gymsid=${c}; Path=/; SameSite=Lax; Max-Age=7776000`)
+  res.setHeader('Location', '/#/home')
+  res.end()
+}
+
 export default defineConfig(({ command, mode }) => ({
   // __APP_LANGS__ narrows the language picker (lib/i18n-core.js); in dev and tests it is null: everything.
   define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_LANGS__: command === 'build' && appLangs ? JSON.stringify(appLangs) : 'null', ...forkDefines(mode) },
-  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs, forkStubs],
+  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs, forkStubs, devSession],
   base: './',
   server: {
     // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core
