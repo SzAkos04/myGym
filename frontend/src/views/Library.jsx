@@ -16,6 +16,7 @@ import { tappable, useRevealActiveChip } from '../lib/use-sheet-keyboard.js'
 import { useAutoMore } from '../lib/use-auto-more.js'
 import { isFav, sortFavouritesFirst, sortYoursFirst, usageOf } from '../lib/favourites.js'
 import { sideDefaultOf } from '../lib/side-default.js'
+import { ANALYSIS } from '../lib/fork-profile.js'
 
 export default function Library() {
   const nav = useNavigate()
@@ -75,7 +76,7 @@ export default function Library() {
 
   return <>
     <div className="hdr lib-hdr"><div><h1>{t('Exercises')}</h1></div>
-      <Button size="sm" variant="tinted" icon="figureStrength" onClick={() => nav('/muscles')}>{t('By muscle')}</Button>
+      {ANALYSIS && <Button size="sm" variant="tinted" icon="figureStrength" onClick={() => nav('/muscles')}>{t('By muscle')}</Button>}
       <div className="sub lib-count">{ownCount
         ? tn('{1} animated exercises + 1 of your own', '{1} animated exercises + {0} of your own', ownCount, builtInCount)
         : t('{0} exercises with animations', builtInCount)}</div>

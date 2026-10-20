@@ -10,6 +10,7 @@ import { closeThenNav } from '../lib/nav.js'
 import { REST_MAX, fmtRest } from '../lib/duration.js'
 import { durationSheet } from './DurationWheel.jsx'
 import { Section, Row, Switch, Segmented, Button } from './ui.jsx'
+import { ANALYSIS } from '../lib/fork-profile.js'
 
 // The settings people touch at the gym, without leaving the workout (v1.3.11, opened from the
 // workout's ⋯ → Workout settings). Every row writes the same S.* field as Settings → Workout and
@@ -61,11 +62,11 @@ export function WorkoutSettings({ close }) {
           options={[{ value: 'cards', label: t('Cards') }, { value: 'list', label: t('List') }, { value: 'compact', label: t('Compact') }]}
           value={layout} onChange={v => update(s => { s.workoutView = v; if (s.active) delete s.active.workoutView })} />
       </Row>
-      <Row icon="gauge" iconTint="var(--purple)" title={t('Effort per set')}>
+      {ANALYSIS && <Row icon="gauge" iconTint="var(--purple)" title={t('Effort per set')}>
         <Segmented className="seg-inline"
           options={[{ value: 'none', label: t('Off') }, { value: 'rir', label: t('RIR') }, { value: 'rpe', label: t('RPE') }]}
           value={effortOf(S)} onChange={v => update(s => { s.effort = v; delete s.showRir })} />
-      </Row>
+      </Row>}
       <Row icon="swap" iconTint="var(--indigo)" title={t('Swipe actions')} subtitle={t('Sets, routines and the loop: left removes, right copies')}>
         <Switch aria-label={t('Swipe actions')} checked={workoutControls(S).swipeSets}
           onChange={v => update(s => { s.wc = { ...workoutControls(s), swipeSets: v } })} />

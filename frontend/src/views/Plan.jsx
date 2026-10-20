@@ -19,7 +19,7 @@ import { glyphOf, DEFAULT_GLYPH } from '../lib/glyphs.js'
 import { DEMO } from '../lib/demo.js'
 import { MOBILE } from '../lib/mobile.js'
 import { coachAvailable } from '../lib/coach.js'
-import { COACH } from '../lib/fork-profile.js'
+import { COACH, ANALYSIS } from '../lib/fork-profile.js'
 import { queueOf, queueView } from '../lib/queue.js'
 import { deriveSessionName } from '../lib/session-merge.js'
 import { routineMuscles } from '../lib/home-stats.js'
@@ -380,7 +380,7 @@ function Schedule({ S, update, nav, mode }) {
 
     {/* Weekly muscle volume is analysis: it moved to Stats, next to Muscle balance. Stats only
         shows that card once there is a routine, so the link waits for one too. */}
-    {S.routines.length > 0 && <Section className="plan-link">
+    {ANALYSIS && S.routines.length > 0 && <Section className="plan-link">
       <Row icon="chart" iconTint="var(--indigo)" title={t('Weekly muscle volume')} subtitle={t('Now in Stats, next to Muscle balance')}
         accessory="chevron" onClick={() => nav('/stats?focus=weekly-volume')} />
     </Section>}

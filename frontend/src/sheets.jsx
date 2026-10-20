@@ -1,4 +1,5 @@
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { ANALYSIS } from './lib/fork-profile.js'
 import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
 import { EXDB, EXIDX, BODYPARTS, isCardio, isBodyweightEq, allExercises, equipmentOf, byCategory, smOf, searchExercises, similarExercises, exOr, isAssisted, betterWeight, beatsWeight, isCustomEx } from './lib/exercises.js'
@@ -417,7 +418,7 @@ export const weighInsSheet = () => ui().openSheet(close => <WeighIns close={clos
 /* ============================ import from another app ============================ */
 // "12 sets bring an RPE with them": the file rated its sets. The column is off by default, so
 // with it off the line says where to switch it on.
-const effortLine = (effort, n, scale) => effort === 'none'
+const effortLine = (effort, n, scale) => effort === 'none' && ANALYSIS
   ? tn('{0} set brings an {1} with it. Switch on Effort per set in Settings to see it.', '{0} sets bring an {1} with them. Switch on Effort per set in Settings to see it.', n, scale)
   : tn('{0} set brings an {1} with it.', '{0} sets bring an {1} with them.', n, scale)
 // Shows what a parsed export would actually do before anything is written. An import is

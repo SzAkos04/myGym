@@ -7,13 +7,18 @@
 //   ANDROID  the native phone app: "Get the Android app" and pairing a phone app with this server
 //            (the phone build's own parts, frontend/android and ios, are not in this web build at all)
 //   GUEST    "Continue without account" on the sign-in screen
+//   ANALYSIS the training analysis the owner has no use for (he trains every set to failure and
+//            judges his own recovery): Stats' Muscle balance / Fatigue / Strength card, the Effort card
+//            and the Effort per set setting (so no effort column in a workout either), Structural
+//            balance, Weekly muscle volume (and Plan's link to it), and Exercises' "By muscle" view
 //
 // The demo is not here: it only exists in the demo build (lib/demo.js), never in this one.
-/* global __MYGYM_COACH__, __MYGYM_CHECKIN__, __MYGYM_ANDROID__, __MYGYM_GUEST__, __MYGYM_HIDDEN_CATEGORIES__ */
+/* global __MYGYM_COACH__, __MYGYM_CHECKIN__, __MYGYM_ANDROID__, __MYGYM_GUEST__, __MYGYM_ANALYSIS__, __MYGYM_HIDDEN_CATEGORIES__ */
 export const COACH = typeof __MYGYM_COACH__ === 'undefined' || __MYGYM_COACH__
 export const CHECKIN = typeof __MYGYM_CHECKIN__ === 'undefined' || __MYGYM_CHECKIN__
 export const ANDROID = typeof __MYGYM_ANDROID__ === 'undefined' || __MYGYM_ANDROID__
 export const GUEST = typeof __MYGYM_GUEST__ === 'undefined' || __MYGYM_GUEST__
+export const ANALYSIS = typeof __MYGYM_ANALYSIS__ === 'undefined' || __MYGYM_ANALYSIS__
 
 // Kinds of exercise kept out of the lists, the search and the pickers (lib/exercises.js allExercises).
 export const HIDDEN_CATEGORIES = new Set(typeof __MYGYM_HIDDEN_CATEGORIES__ === 'undefined' ? [] : __MYGYM_HIDDEN_CATEGORIES__)

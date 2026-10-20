@@ -64,11 +64,11 @@ const ProgressPhotos = onDemand(() => import('./views/ProgressPhotos.jsx'))
 const Admin = onDemand(() => import('./views/Admin.jsx'))
 const Measurements = onDemand(() => import('./views/Measurements.jsx'))
 const SettingsRoute = onDemand(() => import('./views/Settings.jsx'), m => m.SettingsRoute)
-const preloadScreens = () => { for (const S of [RoutineEdit, Stats, History, Muscles, StructuralBalance, ProgressPhotos, Admin, Measurements, SettingsRoute]) S.preload() }
+const preloadScreens = () => { for (const S of [RoutineEdit, Stats, History, ...(ANALYSIS ? [Muscles, StructuralBalance] : []), ProgressPhotos, Admin, Measurements, SettingsRoute]) S.preload() }
 import CoachChat from './views/CoachChat.jsx'
 import CoachIntake from './views/CoachIntake.jsx'
 import CoachSetup from './views/CoachSetup.jsx'
-import { COACH, CHECKIN } from './lib/fork-profile.js'
+import { COACH, CHECKIN, ANALYSIS } from './lib/fork-profile.js'
 
 // last known scrollY per route, so back-navigation can put the page where it was
 const scrollPositions = new Map()
@@ -246,8 +246,8 @@ function Shell() {
               <Route path="/stats" element={<Stats />} />
               <Route path="/history" element={<History />} />
               <Route path="/library" element={<Library />} />
-              <Route path="/muscles" element={<Muscles />} />
-              <Route path="/structural-balance" element={<StructuralBalance />} />
+              {ANALYSIS && <Route path="/muscles" element={<Muscles />} />}
+              {ANALYSIS && <Route path="/structural-balance" element={<StructuralBalance />} />}
               <Route path="/progress-photos" element={<ProgressPhotos />} />
               <Route path="/measurements" element={<Measurements />} />
               <Route path="/settings" element={<SettingsRoute />} />

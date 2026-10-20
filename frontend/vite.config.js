@@ -121,13 +121,13 @@ const packLangs = {
 // What myGym leaves out of openGym (src/lib/fork-profile.js). The code stays, so pulling upstream does not
 // conflict over it; the switches below take it off the screen, and Rollup drops what nothing reaches any
 // more. Tests keep everything on, so the upstream suites still cover the parts that are switched off here.
-const FORK_OFF = ['coach', 'checkin', 'android', 'guest']
+const FORK_OFF = ['coach', 'checkin', 'android', 'guest', 'analysis']
 const FORK_HIDDEN_CATEGORIES = ['mobility', 'stretching', 'yoga', 'pilates', 'combat', 'rehab']
 const forkDefines = mode => {
   const fork = mode !== 'test'
   const on = f => String(!(fork && FORK_OFF.includes(f)))
   return {
-    __MYGYM_COACH__: on('coach'), __MYGYM_CHECKIN__: on('checkin'), __MYGYM_ANDROID__: on('android'), __MYGYM_GUEST__: on('guest'),
+    __MYGYM_COACH__: on('coach'), __MYGYM_CHECKIN__: on('checkin'), __MYGYM_ANDROID__: on('android'), __MYGYM_GUEST__: on('guest'), __MYGYM_ANALYSIS__: on('analysis'),
     __MYGYM_HIDDEN_CATEGORIES__: JSON.stringify(fork ? FORK_HIDDEN_CATEGORIES : []),
   }
 }
@@ -140,7 +140,7 @@ const FORK_STUBS = [
   // The coach's screens and their stylesheet: their routes are switched off, but App.jsx and Admin.jsx
   // import them, and a stylesheet import is never dropped. coach.css shipped to every page, where its
   // .typing rule once turned the whole page into a flex box (lib/viewport-guard.js).
-  [/\/src\/views\/(CoachChat|CoachIntake|CoachSetup|AdminCoach)\.jsx$/, 'export default function Off() { return null }'],
+  [/\/src\/views\/(CoachChat|CoachIntake|CoachSetup|AdminCoach|StructuralBalance|Muscles)\.jsx$/, 'export default function Off() { return null }'],
   [/\/src\/coach\.css$/, ''],
   // myGym Lite: one way to change screens. The new screen's own CSS slide (index.css, #app.vfade) is all
   // that moves; nothing copies the old screen (ScreenGhost), keeps pictures of left screens
