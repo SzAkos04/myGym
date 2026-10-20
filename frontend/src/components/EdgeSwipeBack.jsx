@@ -54,7 +54,15 @@ export default function EdgeSwipeBack() {
       g.under.style.transition = 'none'
       place(toDx)
       g.under.style.setProperty('--dim', dimAt(progressOf(toDx, W)))
-      setTimeout(then, ms + 10)
+      // The next step waits for the slide to have played, not for its length on the clock: on the iPhone
+      // the copy of the screen beneath took about that long to lay out, so a timer fired before a single
+      // frame of the slide had been drawn and the screen was swapped at once. A slower timer stays as the
+      // fallback for a page that never draws (hidden, or no Web Animations).
+      let fired = false
+      const go = () => { if (!fired) { fired = true; then() } }
+      const run = g.anims[0]
+      if (run?.finished) { run.finished.then(go, () => {}); setTimeout(go, ms + 1500) }
+      else setTimeout(go, ms + 10)
     }
 
     const start = e => {
@@ -124,8 +132,14 @@ export default function EdgeSwipeBack() {
       // The workout has no tab bar; Home has. Its copy lies on the picture beneath, so the bar is there as
       // the workout sinks off it, and the real one takes the same place when the route changes.
       if (kind === 'down') for (const n of getTabBar() || []) g.under.appendChild(n.cloneNode(true))
-      void app.offsetWidth                                        // the start must be painted, or there is nothing to move from
-      settle(span(), arrive(proceed), kind === 'down' ? 480 : 280)
+      // The slide starts once the copy beneath has been drawn. Laying that copy out (a whole screen) took
+      // the iPhone 11 about as long as the slide itself, and an animation started in the same frame had
+      // played out unseen by the time anything was painted: a cut, not a slide. Two frames: the first
+      // lays the copy out and paints it, the second starts the clock on a screen that can move.
+      const g0 = g
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (g === g0) settle(span(), arrive(proceed), kind === 'down' ? 480 : 280)
+      }))
       return true
     })
 

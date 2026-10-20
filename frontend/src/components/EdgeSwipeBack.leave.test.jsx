@@ -47,6 +47,8 @@ describe('minimizing the workout in the installed iOS app', () => {
     saveTabBar([bar])
     const app = document.getElementById('app')
     act(() => { nav('/home') })
+    // The copy beneath is drawn first; the slide starts two frames later
+    act(() => { vi.advanceTimersByTime(40) })
     // The slide has started and a re-render for the tab bar did not stop it
     expect(document.getElementById('app')).toBe(app)
     expect(app.style.transform).toMatch(/translate3d\(0(px)?,\s*\d+px/)
