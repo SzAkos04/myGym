@@ -24,8 +24,11 @@ import Icon from './Icon.jsx'
 
 const nameOf = id => (EXIDX[id] ? exerciseNameFor(EXIDX[id]) : id)
 const setsWord = n => tn('{0} set', '{0} sets', n)
+// English-only strings (the build ships one language): plain t() picks the form, since every tn() key
+// needs Russian, Ukrainian and Polish plural forms (lib/i18n-plural.test.js).
+const count = (n, one, many) => t(n === 1 ? one : many, n)
 // A set with no weight on it yet (a new routine, a bodyweight move) reads "8 reps", not "0×8".
-const label = (id, s, cfg, speed) => (s.r > 0 && !(s.w > 0) && !(s.sec > 0) && !(s.min > 0) ? tn('{0} rep', '{0} reps', s.r) : setLabel(id, s, cfg, speed))
+const label = (id, s, cfg, speed) => (s.r > 0 && !(s.w > 0) && !(s.sec > 0) && !(s.min > 0) ? count(s.r, '{0} rep', '{0} reps') : setLabel(id, s, cfg, speed))
 
 export const workoutPreviewSheet = ids => useUI.getState().openSheet(close => <WorkoutPreview ids={ids} close={close} />)
 
@@ -49,7 +52,7 @@ function WorkoutPreview({ ids, close }) {
         {ex && <Thumb ex={ex} />}
         <div className="grow" style={{ minWidth: 0 }}>
           <div className={`tt ${exerciseNameClass(ex)}`} style={{ fontWeight: 600 }}>{nameOf(e.id)}</div>
-          <div className="ss">{setsLine(work(e).map(s => label(e.id, s, e.target, speed)), setsWord)}{warm > 0 && <span className="dim">{' · ' + tn('{0} warm-up', '{0} warm-ups', warm)}</span>}</div>
+          <div className="ss">{setsLine(work(e).map(s => label(e.id, s, e.target, speed)), setsWord)}{warm > 0 && <span className="dim">{' · ' + count(warm, '{0} warm-up', '{0} warm-ups')}</span>}</div>
           {last && <div className="small dim" style={{ marginTop: 2 }}>{t('Last time')}: {setsLine(last.sets.map(s => label(e.id, s, last.target, speed)), setsWord)}</div>}
         </div>
       </div>
