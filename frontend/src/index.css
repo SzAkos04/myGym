@@ -2520,3 +2520,14 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .closing .sheet{animation:ghostsheet .28s cubic-bezier(.32,.72,0,1) both}
 .closing .center{animation:ghostpop .2s ease both}
 .closing{pointer-events:none}
+
+/* myGym Lite: motion that keeps the iPhone busy for nothing.
+   - The tab pill grew by animating its padding: a layout of the whole bar every frame of every tab
+     change. The pill now just appears; its colour still fades.
+   - Home's cards faded in one by one and the weekly set bars swept in by animating clip-path, which
+     repaints each row on every frame for most of a second. Flat: the screen is there at once.
+   - A screen's slide or fade kept its last frame (fill-mode both) for as long as the screen was open,
+     a live animation on #app between every two changes. Only the start frame is held now. */
+#tabbar .tab-ic{transition:background var(--med) var(--ease)}
+#app.vfade .narrow>.card,#app.vfade .narrow>.hdr,.wset .blocks{animation:none}
+#app.vfade[data-dir]{animation-fill-mode:backwards}
