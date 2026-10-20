@@ -2507,3 +2507,8 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .sp-back::before{content:'';position:absolute;inset:-6px}
 .sp-back .icn{font-size:18px;--icon-stroke:2}
 .sp-back span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+/* myGym Lite: a closing sheet goes at once. Modals.jsx leaves a copy of it (and its backdrop) to slide
+   away; that copy is no longer drawn, so a close costs no extra layer to lay out and animate. Opening
+   still slides up. Upstream's Modals.jsx untouched. */
+.ghost-layer{display:none}
