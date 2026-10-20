@@ -2537,3 +2537,15 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .lw-list .row{gap:10px}
 .lw-list span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lw-list b{flex:none;color:var(--label);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* myGym: a screen's header buttons sit on the title's line, centred on it, the iOS large-title way.
+   Upstream aligns them to the bottom of the title block, so next to a subtitle ("Tuesday 20 October")
+   they hung half way between the two lines, level with neither. 36px circles on a 32px title line
+   (30px type under 420px, 36px above). */
+.hdr:not(.whdr-bar)>.iconbtn,.hdr>.hdr-btns,.hdr>.hdr-actions{align-self:flex-start}
+@media (max-width:420px){.hdr:not(.whdr-bar)>.iconbtn,.hdr>.hdr-btns,.hdr>.hdr-actions{margin-top:-2px}}
+/* Home's server cloud beside the gear: drawn in the gear's colour while all is well, so the two read
+   as a pair of the same size; the state stays in a smaller corner badge (and in the cloud's colour
+   when something is wrong). */
+.sync-cloud.ok{color:var(--label)}
+.sync-cloud-b{width:12px;height:12px;right:0;bottom:0}
