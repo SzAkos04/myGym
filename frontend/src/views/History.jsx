@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { t, tn } from '../lib/i18n.js'
@@ -19,16 +20,31 @@ export function historyRows(S) {
   return rows.map((r, i) => [r, i]).sort((a, b) => (a[0].d < b[0].d ? 1 : a[0].d > b[0].d ? -1 : b[1] - a[1])).map(([r]) => r)
 }
 
+const PAGE = 40
+
 export default function History() {
   const nav = useNavigate()
   const S = useStore(s => s.S)
   const rows = historyRows(S)
   const totals = monthTotals(S.workouts)
+  // A year of training is a couple of hundred rows, and drawing them all made opening History take
+  // twice as long as any other screen on an iPhone 11. The first PAGE rows come at once, the next
+  // ones as you scroll near the end. Where nothing can watch the scrolling, all of them at once.
+  const [shown, setShown] = useState(PAGE)
+  const end = useRef(null)
+  const more = shown < rows.length
+  useEffect(() => {
+    if (!more) return
+    if (typeof IntersectionObserver === 'undefined') { setShown(Infinity); return }
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) setShown(n => n + PAGE) }, { rootMargin: '800px 0px' })
+    io.observe(end.current)
+    return () => io.disconnect()
+  }, [more, shown])
   return <>
     <div className="hdr"><button className="iconbtn" onClick={() => nav('/stats')} aria-label={t('Stats')}><Icon name="chevronLeft" /></button>
       <div style={{ flex: 1, marginInlineStart: 12 }}><h1>{t('History')}</h1><div className="sub">{tn('{0} workout', '{0} workouts', S.workouts.length)}</div></div></div>
     <Button icon="plus" onClick={logPastWorkoutSheet} style={{ marginBottom: 12 }}>{t('Log a past workout')}</Button>
-    {rows.length ? <div className="list">{rows.map((r, i) => {
+    {rows.length ? <><div className="list">{rows.slice(0, shown).map((r, i) => {
       const month = r.d.slice(0, 7)
       // A heading when the month changes, wearing what that month added up to.
       const head = (i === 0 || rows[i - 1].d.slice(0, 7) !== month) && <h4 key={'m-' + month} className="sec month-head">
@@ -38,7 +54,7 @@ export default function History() {
       return [head, r.w
         ? <WorkoutRow key={r.w.id} w={r.w} onClick={() => workoutDetailSheet(r.w)} />
         : <DayNoteRow key={'note-' + r.d} iso={r.d} note={r.note} />]
-    })}</div>
+    })}</div>{more && <div ref={end} style={{ height: 1 }} />}</>
       : <div className="empty"><div className="ico"><Icon name="history" /></div>{t('No workouts yet. Your first one will land here.')}</div>}
   </>
 }

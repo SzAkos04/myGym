@@ -55,9 +55,16 @@ export const exerciseNameText = ex => (exerciseNameClass(ex) ? capWords(exercise
 let decimals = 1
 export const setWeightDecimals = n => { decimals = n === 2 ? 2 : 1 }
 export const weightDecimals = () => decimals
+// One formatter per locale and decimal setting: toLocaleString with options builds a new
+// Intl.NumberFormat on every call, and Stats alone formats a few thousand numbers per draw (the
+// activity grid's labels among them), about 5 ms of each on an iPhone-class phone.
+const numFmts = new Map()
 export const fmtNum = n => {
   const p = decimals === 2 ? 100 : 10
-  return (Math.round(n * p) / p).toLocaleString(dateLocale(), { maximumFractionDigits: decimals })
+  const loc = dateLocale(), k = loc + '|' + decimals
+  let f = numFmts.get(k)
+  if (!f) numFmts.set(k, f = new Intl.NumberFormat(loc, { maximumFractionDigits: decimals }))
+  return f.format(Math.round(n * p) / p)
 }
 // Plate sizes keep their quarter: 1.25 and 21.25 are real numbers on a plate and a bar.
 export const fmtPlate = n => (Math.round(n * 100) / 100).toLocaleString(dateLocale())
