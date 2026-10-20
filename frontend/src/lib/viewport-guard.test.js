@@ -112,16 +112,16 @@ describe('viewport guard', () => {
     const search = { tagName: 'INPUT', type: 'search' }
     w.document.activeElement = search
     w.fire(w.document, 'focusin', { target: search })
-    expect(cls.has('typing')).toBe(true)
+    expect(cls.has('keyboard-up')).toBe(true)
     // to the next field: still typing
     const note = { tagName: 'TEXTAREA' }
     w.fire(w.document, 'focusout', { target: search }); w.document.activeElement = note
     vi.advanceTimersByTime(1)
-    expect(cls.has('typing')).toBe(true)
+    expect(cls.has('keyboard-up')).toBe(true)
     // to nothing: the bar comes back
     w.fire(w.document, 'focusout', { target: note }); w.document.activeElement = null
     vi.advanceTimersByTime(1)
-    expect(cls.has('typing')).toBe(false)
+    expect(cls.has('keyboard-up')).toBe(false)
     off()
     vi.useRealTimers()
   })

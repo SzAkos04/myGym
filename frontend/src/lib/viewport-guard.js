@@ -102,10 +102,10 @@ export function installViewportGuard(win = window) {
   const onScroll = () => { if (!wasOpen && !atScrollEnd(win)) realign(win) }
   // While typing on a phone the keyboard covers the bottom of the page, and the tab bar pinned there
   // drifted in and out above it as the results scrolled (iOS keeps fixed elements on the layout
-  // viewport, which the keyboard does not shrink). :root.typing hides it on touch screens (index.css).
+  // viewport, which the keyboard does not shrink). :root.keyboard-up hides it on touch screens (index.css).
   // Checked after focus has moved, so hopping from one field to the next does not flash it back.
   const root = win.document.documentElement
-  const typing = () => root?.classList?.toggle('typing', bringsKeyboard(win.document.activeElement))
+  const typing = () => root?.classList?.toggle('keyboard-up', bringsKeyboard(win.document.activeElement))
   const onFocusIn = e => { if (bringsKeyboard(e.target)) typing() }
   const onFocusOut = e => { if (isText(e.target)) settle(); later(typing, 0) }
 
@@ -118,7 +118,7 @@ export function installViewportGuard(win = window) {
     vv.removeEventListener('scroll', onScroll)
     win.document.removeEventListener('focusout', onFocusOut)
     win.document.removeEventListener('focusin', onFocusIn)
-    root?.classList?.remove('typing')
+    root?.classList?.remove('keyboard-up')
     timers.forEach(t => win.clearTimeout(t))
   }
 }
