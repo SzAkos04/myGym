@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest'
-import { installViewportGuard, realign, realignPinned, viewportDisplacement, keyboardOpen, atScrollEnd } from './viewport-guard.js'
+import { bringsKeyboard, installViewportGuard, realign, realignPinned, viewportDisplacement, keyboardOpen, atScrollEnd } from './viewport-guard.js'
 
 function fakeWindow({ innerHeight = 800, vvHeight = 800, offsetTop = 0, pageTop = 0, scrollY = 0, active = null, bodyStyle = {} } = {}) {
   const listeners = {}
@@ -101,6 +101,39 @@ describe('viewport guard', () => {
     vi.advanceTimersByTime(400)
     expect(w.scrollTo).toHaveBeenCalledTimes(3)   // timers cleared on uninstall
     vi.useRealTimers()
+  })
+
+  it('marks the page while a field with a keyboard has focus, and clears it once focus has gone', () => {
+    vi.useFakeTimers()
+    const w = fakeWindow()
+    const cls = new Set()
+    w.document.documentElement = { classList: { toggle: (c, on) => (on ? cls.add(c) : cls.delete(c)), remove: c => cls.delete(c) } }
+    const off = installViewportGuard(w)
+    const search = { tagName: 'INPUT', type: 'search' }
+    w.document.activeElement = search
+    w.fire(w.document, 'focusin', { target: search })
+    expect(cls.has('typing')).toBe(true)
+    // to the next field: still typing
+    const note = { tagName: 'TEXTAREA' }
+    w.fire(w.document, 'focusout', { target: search }); w.document.activeElement = note
+    vi.advanceTimersByTime(1)
+    expect(cls.has('typing')).toBe(true)
+    // to nothing: the bar comes back
+    w.fire(w.document, 'focusout', { target: note }); w.document.activeElement = null
+    vi.advanceTimersByTime(1)
+    expect(cls.has('typing')).toBe(false)
+    off()
+    vi.useRealTimers()
+  })
+
+  it('knows which fields bring the keyboard up', () => {
+    expect(bringsKeyboard({ tagName: 'INPUT', type: 'text' })).toBe(true)
+    expect(bringsKeyboard({ tagName: 'INPUT', type: 'number' })).toBe(true)
+    expect(bringsKeyboard({ tagName: 'TEXTAREA' })).toBe(true)
+    expect(bringsKeyboard({ tagName: 'INPUT', type: 'checkbox' })).toBe(false)
+    expect(bringsKeyboard({ tagName: 'INPUT', type: 'range' })).toBe(false)
+    expect(bringsKeyboard({ tagName: 'BUTTON' })).toBe(false)
+    expect(bringsKeyboard(null)).toBe(false)
   })
 
   it('does nothing while the keyboard is open, and nothing at all without a visualViewport', () => {

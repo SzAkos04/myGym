@@ -18,6 +18,9 @@ const KEYBOARD_MIN_PX = 100
 const SETTLE_MS = 350   // the keyboard's dismiss animation; the offset is only wrong after it
 
 const isText = el => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+// A field that brings the keyboard up: not a switch, a slider or a button that happens to be an input.
+const NO_KEYBOARD = /^(checkbox|radio|range|button|submit|reset|color|file|image|hidden)$/i
+export const bringsKeyboard = el => !!(isText(el) && !(el.tagName === 'INPUT' && NO_KEYBOARD.test(el.type || '')))
 
 export function viewportDisplacement(win = window) {
   const vv = win.visualViewport
@@ -97,15 +100,25 @@ export function installViewportGuard(win = window) {
     wasOpen = open
   }
   const onScroll = () => { if (!wasOpen && !atScrollEnd(win)) realign(win) }
-  const onFocusOut = e => { if (isText(e.target)) settle() }
+  // While typing on a phone the keyboard covers the bottom of the page, and the tab bar pinned there
+  // drifted in and out above it as the results scrolled (iOS keeps fixed elements on the layout
+  // viewport, which the keyboard does not shrink). :root.typing hides it on touch screens (index.css).
+  // Checked after focus has moved, so hopping from one field to the next does not flash it back.
+  const root = win.document.documentElement
+  const typing = () => root?.classList?.toggle('typing', bringsKeyboard(win.document.activeElement))
+  const onFocusIn = e => { if (bringsKeyboard(e.target)) typing() }
+  const onFocusOut = e => { if (isText(e.target)) settle(); later(typing, 0) }
 
   vv.addEventListener('resize', onResize)
   vv.addEventListener('scroll', onScroll)
   win.document.addEventListener('focusout', onFocusOut)
+  win.document.addEventListener('focusin', onFocusIn)
   return () => {
     vv.removeEventListener('resize', onResize)
     vv.removeEventListener('scroll', onScroll)
     win.document.removeEventListener('focusout', onFocusOut)
+    win.document.removeEventListener('focusin', onFocusIn)
+    root?.classList?.remove('typing')
     timers.forEach(t => win.clearTimeout(t))
   }
 }
