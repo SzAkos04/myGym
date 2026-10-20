@@ -11,7 +11,7 @@ vi.mock('../lib/screen-motion.js', async () => ({
 
 import EdgeSwipeBack from './EdgeSwipeBack.jsx'
 import { saveSnapshot, resetSnapshots } from '../lib/screen-snapshots.js'
-import { pushEntry, resetAppHistory } from '../lib/app-history.js'
+import { animateBack, pushEntry, resetAppHistory } from '../lib/app-history.js'
 
 let root, host
 const touch = (type, x) => {
@@ -83,6 +83,18 @@ describe('swipe back from the left edge', () => {
     expect(slide.keyframes.at(-1).transform).toContain('(0px')     // back to rest
     expect(slide.opts.duration).toBe(280)
     act(() => { vi.advanceTimersByTime(400) })
+    vi.useRealTimers()
+  })
+
+  it('a slide started by a button plays through a touchend that arrives after the click', () => {
+    vi.useFakeTimers()
+    const copy = document.createElement('div'); saveSnapshot('/settings', copy)
+    let stepped = 0
+    expect(animateBack('/settings', () => { stepped++ }, 'pop')).toBe(true)
+    act(() => { vi.advanceTimersByTime(40) })                      // two frames: the slide is under way
+    touch('touchend')                                              // the tap that pressed the button, late
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(stepped).toBe(1)                                        // it went back, it did not spring back
     vi.useRealTimers()
   })
 

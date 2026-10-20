@@ -97,8 +97,10 @@ export default function EdgeSwipeBack() {
       g = { x0, last: x0, lastT: performance.now(), vx: 0, dx: 0, app, under, copy, vert }
       place(0)
     }
+    // A slide a button started (`g.button`) is no finger's: a touch that ends or moves while it plays is
+    // the tap that pressed the button, and taken for a swipe let go at 0 px it sprang the screen back.
     const move = e => {
-      if (!g) return
+      if (!g || g.button) return
       const x = e.touches[0].clientX, now = performance.now()
       if (now > g.lastT) g.vx = (x - g.last) / (now - g.lastT)
       g.last = x; g.lastT = now
@@ -115,7 +117,7 @@ export default function EdgeSwipeBack() {
       requestAnimationFrame(() => requestAnimationFrame(done))
     }
     const end = () => {
-      if (!g) return
+      if (!g || g.button) return
       if (shouldComplete({ dx: g.dx, width: window.innerWidth, vx: g.vx })) settle(window.innerWidth, arrive(() => nav(-1)))
       else settle(0, done)
     }
@@ -129,6 +131,7 @@ export default function EdgeSwipeBack() {
       const snap = getSnapshot(dest) || document.createElement('div'), app = live()
       if (!app) return false
       begin(snap, app, 0, kind === 'down')
+      g.button = true
       // The workout has no tab bar; Home has. Its copy lies on the picture beneath, so the bar is there as
       // the workout sinks off it, and the real one takes the same place when the route changes.
       if (kind === 'down') for (const n of getTabBar() || []) g.under.appendChild(n.cloneNode(true))
