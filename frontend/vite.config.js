@@ -104,7 +104,7 @@ const appVersion = process.env.APP_BUILD ? `${pkgVersion}+${process.env.APP_BUIL
 // instructions) are built as empty modules: the files stay in the repo, so pulling upstream never
 // conflicts over them, but they add nothing to the bundle or to what the service worker downloads
 // on every install and update. `APP_LANGS=all` ships every language; a list ("en,de,hu") picks.
-const langsEnv = (process.env.APP_LANGS || 'en,hu,de').trim()
+const langsEnv = (process.env.APP_LANGS || 'en').trim()
 const appLangs = langsEnv === 'all' ? null : langsEnv.split(',').map(l => l.trim().split('-')[0]).filter(Boolean)
 const packLangs = {
   name: 'opengym-langs',
@@ -137,6 +137,11 @@ const forkDefines = mode => {
 // gone), and the QR reader only the gym check-in used. In a myGym build they are empty modules, the way
 // packLangs empties the languages: nothing to download, nothing for the service worker to cache.
 const FORK_STUBS = [
+  // The coach's screens and their stylesheet: their routes are switched off, but App.jsx and Admin.jsx
+  // import them, and a stylesheet import is never dropped. coach.css shipped to every page, where its
+  // .typing rule once turned the whole page into a flex box (lib/viewport-guard.js).
+  [/\/src\/views\/(CoachChat|CoachIntake|CoachSetup|AdminCoach)\.jsx$/, 'export default function Off() { return null }'],
+  [/\/src\/coach\.css$/, ''],
   [/\/src\/lib\/coach-local\.js$/, 'export {}'],
   [/\/src\/lib\/coach-demo\.js$/, 'export {}'],
   [/\/node_modules\/jsqr\//, 'export default function jsQR() { return null }'],
