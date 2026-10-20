@@ -20,6 +20,7 @@ import { weeklyWorkingSets, lastWorkoutSummary, todaySummary } from '../lib/home
 import { prsOf } from '../lib/pr-derive.js'
 import { PassCard, PassLine } from '../components/GymPass.jsx'
 import { passStatus } from '../lib/gym-pass.js'
+import { workoutPreviewSheet, LastWorkoutCard } from '../components/HomeWorkout.jsx'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -110,7 +111,6 @@ export default function Home() {
   const prevTo = new Date(curStart); prevTo.setDate(curStart.getDate() - 1)
   const setsDelta = sets.total - weeklyWorkingSets(S.workouts, isoOf(prevFrom), isoOf(prevTo)).total
   const setsMax = Math.max(1, ...sets.groups.map(g => g.sets))
-  const lastW = lastWorkoutSummary(S.workouts)
   const sum = todaySummary(S.workouts, todayRoutines, todayISO())
   const doneSum = doneToday ? { ...lastWorkoutSummary([doneToday]), prs: prsOf(S.workouts, doneToday).length } : null
   const bwPoints = S.bodyweight.slice(-30).map(b => ({ t: b.t || new Date(b.d).getTime(), y: b.w, d: b.d }))
@@ -118,7 +118,7 @@ export default function Home() {
   // today's session shown right under the week strip
   // A day already done opens what was logged, not the same session over again; a second one that
   // day starts from "Choose a different workout" below.
-  const onToday = () => { if (S.active) nav('/workout'); else if (doneToday) workoutDetailSheet(doneToday); else if (todayRoutines.length) startFlow(effectiveRoutineIds(S, todayISO())); else dayOverrideSheet(todayISO()) }
+  const onToday = () => { if (S.active) nav('/workout'); else if (doneToday) workoutDetailSheet(doneToday); else if (todayRoutines.length) workoutPreviewSheet(effectiveRoutineIds(S, todayISO())); else dayOverrideSheet(todayISO()) }
   // A chip on the coach week's progress row starts that one routine, in any order. A session
   // already in progress wins, as on the today row — starting another would overwrite it.
   const onQueueStart = id => { if (S.active) nav('/workout'); else startFlow([id]) }
@@ -262,19 +262,7 @@ export default function Home() {
       </div>
     </div>}
 
-    {lastW && <div className="card tappable last-workout" style={{ cursor: 'pointer' }} {...tappable(() => { const w = S.workouts.filter(x => x.d === lastW.d).at(-1); if (w) workoutDetailSheet(w) })}>
-      <div className="row between">
-        <div className="row" style={{ gap: 11, minWidth: 0 }}>
-          <span className="lrow-i" style={{ background: 'var(--surface-3)' }}><Icon name="history" /></span>
-          <div style={{ minWidth: 0 }}>
-            <div className="lbl2">{t('Last workout')}</div>
-            <div className="ttl">{lastW.name || t('Workout')}</div>
-            <div className="ss">{[fmtDate(lastW.d, true), lastW.mins ? t('{0} min', lastW.mins) : null, tn('{0} set', '{0} sets', lastW.sets)].filter(Boolean).join(' · ')}{lastW.prs > 0 && <> · <span className="pr-text">★ {lastW.prs} PR</span></>}</div>
-          </div>
-        </div>
-        <Icon name="chevronRight" className="chev" />
-      </div>
-    </div>}
+    <LastWorkoutCard />
 
     {S.showWeightCard !== false && <div className="card">
       <div className="row between bw-head" style={{ marginBottom: 6 }}>

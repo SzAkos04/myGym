@@ -2531,3 +2531,9 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 #tabbar .tab-ic{transition:background var(--med) var(--ease)}
 #app.vfade .narrow>.card,#app.vfade .narrow>.hdr,.wset .blocks{animation:none}
 #app.vfade[data-dir]{animation-fill-mode:backwards}
+
+/* myGym: the Last workout card's exercises, each with its best set (components/HomeWorkout.jsx). */
+.lw-list{margin-top:12px;display:grid;gap:6px;font-size:14px;color:var(--label-2)}
+.lw-list .row{gap:10px}
+.lw-list span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lw-list b{flex:none;color:var(--label);font-weight:600;font-variant-numeric:tabular-nums}

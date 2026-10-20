@@ -11,6 +11,7 @@ import { useStore } from '../store/useStore.js'
 import { startFlow, workoutDetailSheet } from '../sheets.jsx'
 import Home from './Home.jsx'
 import { todayISO } from '../lib/format.js'
+import { useUI } from '../store/useUI.js'
 
 const nav = vi.fn()
 vi.mock('react-router-dom', () => ({ useNavigate: () => nav }))
@@ -93,5 +94,21 @@ describe('Home — the way to the Start screen when a plan already owns today', 
     act(() => { row.dispatchEvent(new MouseEvent('click', { bubbles: true })) })
     expect(workoutDetailSheet).toHaveBeenCalledWith(w)
     expect(startFlow).not.toHaveBeenCalled()
+  })
+
+  // myGym: a tap on today's routine shows it first (components/HomeWorkout.jsx); Start is in the sheet.
+  it('previews today\'s routine instead of starting it, and starts it from the preview', () => {
+    useUI.setState({ sheets: [] })
+    setS(); mount()
+    act(() => { host.querySelector('.today-row').dispatchEvent(new MouseEvent('click', { bubbles: true })) })
+    expect(startFlow).not.toHaveBeenCalled()
+    const [sheet] = useUI.getState().sheets
+    const box = document.createElement('div'), r2 = createRoot(box)
+    act(() => r2.render(sheet.render(() => useUI.getState().closeSheet(sheet.id))))
+    expect(box.querySelector('h3').textContent).toBe('Push')
+    act(() => { [...box.querySelectorAll('button')].find(b => b.textContent === 'Start workout').click() })
+    expect(startFlow).toHaveBeenCalledWith(['r1'])
+    expect(useUI.getState().sheets).toEqual([])
+    act(() => r2.unmount())
   })
 })
