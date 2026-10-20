@@ -2482,5 +2482,7 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .pass-now.bad .pass-bar span{background:var(--red)}
 
 /* Typing on a touch screen (lib/viewport-guard.js puts .keyboard-up on the root while a field has the
-   keyboard up): the tab bar would float above the keyboard and come and go as the page scrolls. */
-@media (pointer: coarse){ :root.keyboard-up #tabbar{visibility:hidden} }
+   keyboard up): the tab bar would float above the keyboard and come and go as the page scrolls.
+   Taken out, not made invisible: iOS kept drawing its frosted backdrop (backdrop-filter) under a
+   visibility:hidden bar, a pale band the last rows faded into. It is fixed, so nothing moves. */
+@media (pointer: coarse){ :root.keyboard-up #tabbar{display:none} }
