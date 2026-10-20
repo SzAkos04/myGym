@@ -161,7 +161,18 @@ function Sheet({ sheet }) {
     }
   }, [])
 
-  const close = () => closeSheet(sheet.id)
+  // myGym Lite: the sheet itself slides away, then closes (a copy left behind cost a layer to lay out).
+  // The closing class plays the exit (index.css, ghostsheet / ghostback / ghostpop); under test and with
+  // reduce motion it closes at once, as before. A second tap during the exit is the same step.
+  const closing = useRef(false)
+  const close = () => {
+    if (closing.current) return
+    const el = rootRef.current
+    if (!el || import.meta.env.MODE === 'test' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { closeSheet(sheet.id); return }
+    closing.current = true
+    el.classList.add('closing')
+    setTimeout(() => closeSheet(sheet.id), 260)
+  }
   // Full screen, on black: a photo or video opened from a workout (WorkoutMedia.jsx). No
   // backdrop to tap, no drag to dismiss — the viewer has its own close button, and back closes
   // it like any sheet.

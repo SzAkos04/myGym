@@ -2516,3 +2516,7 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
    away; that copy is no longer drawn, so a close costs no extra layer to lay out and animate. Opening
    still slides up. Upstream's Modals.jsx untouched. */
 .ghost-layer{display:none}
+.closing .mback{animation:ghostback .26s ease both}
+.closing .sheet{animation:ghostsheet .28s cubic-bezier(.32,.72,0,1) both}
+.closing .center{animation:ghostpop .2s ease both}
+.closing{pointer-events:none}
