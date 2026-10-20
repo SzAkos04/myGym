@@ -14,6 +14,9 @@ import EdgeSwipeBack from './EdgeSwipeBack.jsx'
 import { resetSnapshots, saveSnapshot, saveTabBar } from '../lib/screen-snapshots.js'
 import { resetAppHistory } from '../lib/app-history.js'
 
+// happy-dom has no Web Animations: record what the slide asks for, and hand back something to cancel.
+let animated = []
+Element.prototype.animate = function (keyframes, opts) { animated.push({ el: this, keyframes, opts }); return { cancel() {} } }
 let root, host, nav
 // What App.jsx's Shell does around the screen: the keyed #app and the swipe. The workout has no tab bar.
 function Shell() {
@@ -28,7 +31,7 @@ function Shell() {
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   vi.useFakeTimers()
-  resetSnapshots(); resetAppHistory()
+  resetSnapshots(); resetAppHistory(); animated = []
   window.location.hash = '#/home'
   host = document.createElement('div'); document.body.appendChild(host)
   root = createRoot(host)
@@ -47,11 +50,12 @@ describe('minimizing the workout in the installed iOS app', () => {
     // The slide has started and a re-render for the tab bar did not stop it
     expect(document.getElementById('app')).toBe(app)
     expect(app.style.transform).toMatch(/translate3d\(0(px)?,\s*\d+px/)
-    expect(app.style.transition).toContain('transform')
+    const slide = animated.find(a => a.el === app)
+    expect(slide.keyframes.at(-1).transform).toMatch(/translate3d\(0(px)?,\s*\d+px/)
     // the copy of the tab bar lies on the picture beneath, not over the sliding screen
     expect(document.querySelector('.screen-under #tabbar')).not.toBeNull()
     expect(app.dataset.path).toBe('/workout')
-    expect(app.style.transition).toContain('480ms')                      // as long as the rise
+    expect(slide.opts.duration).toBe(480)                                 // as long as the rise
     act(() => { vi.advanceTimersByTime(300) })
     expect(document.getElementById('app').dataset.path).toBe('/workout')  // still sinking
     act(() => { vi.advanceTimersByTime(200) })

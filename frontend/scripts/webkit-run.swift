@@ -6,6 +6,10 @@
 //   swift frontend/scripts/webkit-run.swift <url> <name=value cookie> <flow.js> [wait seconds, 4]
 //
 // Needs a window, so it runs outside a sandbox. It reports as Safari 26 on a Mac, like the real one.
+//
+// To pose as something else, set WEBKIT_UA (a user agent) and WEBKIT_PRELUDE (a JS file run before
+// the page's own scripts). The installed iPhone app, for instance: an iPhone UA plus a prelude that
+// sets navigator.standalone = true, which is how lib/screen-motion.js isIosApp() tells it apart.
 import AppKit
 import WebKit
 
@@ -22,7 +26,11 @@ app.setActivationPolicy(.regular)
 let win = NSWindow(contentRect: NSRect(x: 100, y: 100, width: 393, height: 852), styleMask: [.titled], backing: .buffered, defer: false)
 let cfg = WKWebViewConfiguration()
 let web = WKWebView(frame: win.contentView!.bounds, configuration: cfg)
-web.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
+let env = ProcessInfo.processInfo.environment
+web.customUserAgent = env["WEBKIT_UA"] ?? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
+if let pre = env["WEBKIT_PRELUDE"], let src = try? String(contentsOfFile: pre, encoding: .utf8) {
+  cfg.userContentController.addUserScript(WKUserScript(source: src, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+}
 win.contentView!.addSubview(web)
 win.makeKeyAndOrderFront(nil)
 

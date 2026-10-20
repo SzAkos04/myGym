@@ -33,16 +33,24 @@ export default function EdgeSwipeBack() {
       g.under.style.setProperty('--dim', dimAt(p))
     }
     const done = () => {
+      for (const a of g?.anims || []) a.cancel()
       g?.under.remove()
       if (g?.app) { g.app.style.transform = ''; g.app.style.transition = ''; g.app.style.boxShadow = ''; g.app.style.willChange = '' }
       g = null
     }
     // 280 ms after a finger, which has already carried the screen part of the way; the workout sinking
     // away takes as long as it took to rise (index.css scr-up-in, 480 ms), or it looked like a drop.
+    // Run as Web Animations, not as a transition on the inline transform: on an iPhone 11 (iOS app) the
+    // transition never showed a frame for the Home and back buttons, the screen was swapped at once at
+    // the end, while the CSS animations that open a screen moved fine. An element.animate() sits above
+    // any CSS animation left on #app and needs no painted start to move from.
     const settle = (toDx, then, ms = 280) => {
-      const W = span()
-      g.app.style.transition = `transform ${ms}ms cubic-bezier(.32,.72,0,1)`
-      g.copy.style.transition = `transform ${ms}ms cubic-bezier(.32,.72,0,1)`
+      const W = span(), from = g.dx
+      const opts = { duration: ms, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }
+      const at = d => (g.vert ? `translate3d(0,${d}px,0)` : `translate3d(${d}px,0,0)`)
+      const under = d => `translate3d(${underShift(progressOf(d, W), W)}px,0,0)`
+      g.anims = [g.app.animate([{ transform: at(from) }, { transform: at(toDx) }], opts)]
+      if (!g.vert) g.anims.push(g.copy.animate([{ transform: under(from) }, { transform: under(toDx) }], opts))
       g.under.style.transition = 'none'
       place(toDx)
       g.under.style.setProperty('--dim', dimAt(progressOf(toDx, W)))
@@ -53,6 +61,9 @@ export default function EdgeSwipeBack() {
       if (g || e.touches.length !== 1) return
       const t = e.touches[0]
       if (t.clientX > EDGE) return
+      // A touch on a control is a tap on it: the "‹ Home" / "‹ Settings" button starts 10 px from the
+      // edge, and a thumb on its chevron was taken for a swipe that went nowhere, its click cancelled.
+      if (e.target?.closest?.('button, a, input, select, textarea, label, [role="button"]')) return
       // Only from a screen that was opened from another one: a tab's own screen has nothing behind it.
       if (depthOf(pathname) <= 0 || entryCount() <= 0) return
       if (document.body.style.position === 'fixed' || document.getElementById('modal-root')?.classList.contains('open')) return
