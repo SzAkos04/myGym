@@ -363,6 +363,7 @@ export default {
   'Keeps your data safe and separate per person.': 'يحافظ على بياناتك آمنة ومنفصلة لكل شخص.',
   'Strength': 'القوة',
   'Equipment': 'المعدات',
+  'Gym pass': 'اشتراك النادي',
   'Recovery': 'التعافي',
   'Any equipment': 'أي معدات',
   'bench': 'مقعد', 'pull-up bar': 'بار العقلة',

@@ -500,6 +500,7 @@ export default {
   'Keeps your data safe and separate per person.': 'Хранит ваши данные безопасно и отдельно для каждого.',
   'Strength': 'Сила',
   'Equipment': 'Инвентарь',
+  'Gym pass': 'Абонемент',
   'Recovery': 'Восстановление',
   'Any equipment': 'Любой инвентарь',
   'bench': 'скамья', 'pull-up bar': 'турник',

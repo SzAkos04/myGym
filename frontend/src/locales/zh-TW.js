@@ -502,6 +502,7 @@ export default {
   'Keeps your data safe and separate per person.': '確保資料安全，並依使用者各自獨立儲存。',
   'Strength': '肌力訓練',
   'Equipment': '器材',
+  'Gym pass': '健身房會籍',
   'Recovery': '恢復狀態',
   'Any equipment': '不限器材',
   'bench': '臥推凳', 'pull-up bar': '單槓',

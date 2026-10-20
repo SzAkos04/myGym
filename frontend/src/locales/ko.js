@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': '데이터를 안전하게, 사람별로 분리해 보관합니다.',
   'Strength': '근력',
   'Equipment': '장비',
+  'Gym pass': '헬스장 이용권',
   'Recovery': '회복',
   'Any equipment': '모든 장비',
   'bench': '벤치', 'pull-up bar': '턱걸이 바',

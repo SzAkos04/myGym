@@ -185,6 +185,9 @@ export const DEF = {
   // kind of code the gym issued. Just data, so it syncs and backs up like everything else.
   //   [{ id, label, value, fmt }]
   gymCards: [],
+  // Gym passes: what you paid for and until when (lib/gym-pass.js). Home stays quiet while one is
+  // good and says when the next is due. Merged per pass across devices, like the cards above.
+  gymPasses: [],
   // The card the check-in screen last settled on, so it reopens where you left it (handy when
   // you have more than one gym). Holds a gymCards id, or null before any card exists / is chosen;
   // a stale id (card since removed) is simply ignored by the view.

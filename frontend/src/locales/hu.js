@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': 'Biztonságban és személyenként elkülönítve tartja az adataidat.',
   'Strength': 'Erő',
   'Equipment': 'Eszköz',
+  'Gym pass': 'Bérlet',
   'Recovery': 'Regeneráció',
   'Any equipment': 'Bármilyen eszköz',
   'bench': 'pad', 'pull-up bar': 'húzódzkodórúd',

@@ -59,3 +59,14 @@ export function nudgePush(lang, tone, routine, iso) {
   const name = routine?.name || 'openGym';
   return { title: copy.title, body: line.replace('{0}', () => name), tag: 'nudge' };
 }
+
+// The evening before a gym pass ends (nudge.js passEndingTomorrow). English and Hungarian for now;
+// any other language reads the English.
+const PASS_COPY = {
+  en: { title: 'Your gym pass ends tomorrow', body: 'Buy the next one before you go.' },
+  hu: { title: 'Holnap lejár a bérleted', body: 'Vedd meg a következőt, mielőtt mész.' },
+};
+export function passPush(lang) {
+  const copy = PASS_COPY[String(lang || '').split('-')[0]] || PASS_COPY.en;
+  return { title: copy.title, body: copy.body, tag: 'gym-pass' };
+}

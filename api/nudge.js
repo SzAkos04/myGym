@@ -35,6 +35,18 @@ export function nudgeWindowOpen(reminderTime, hhmm) {
 // Calendar arithmetic on ISO dates at UTC noon: no zone or DST edge can move the day.
 const dayBefore = iso => new Date(Date.parse(iso + 'T12:00:00Z') - 86400000).toISOString().slice(0, 10);
 const records = v => (Array.isArray(v) ? v.filter(x => x && typeof x === 'object') : []);
+
+// Gym pass (myGym; frontend/src/lib/gym-pass.js has the full rules): the time pass whose last day is
+// tomorrow, for the evening-before push. Nothing once the next pass is on record, and nothing for a
+// visit pass, which runs out on a visit rather than on a date worth a push the evening before.
+const addDays = (iso, n) => new Date(Date.parse(iso + 'T12:00:00Z') + n * 86400000).toISOString().slice(0, 10);
+export function passEndingTomorrow(S, iso) {
+  const all = records(S?.gymPasses).filter(p => typeof p.start === 'string');
+  if (all.some(p => p.start > iso)) return null;
+  const cur = all.filter(p => p.start <= iso).sort((a, b) => (a.start < b.start ? 1 : a.start > b.start ? -1 : 0))[0];
+  if (!cur || cur.kind === 'visits') return null;
+  return addDays(cur.start, Math.max(1, Number(cur.days) || 30) - 1) === addDays(iso, 1) ? cur : null;
+}
 const logged = (S, iso) => S.workouts.some(w => w.d === iso);
 // A day with a note on it (frontend lib/day-notes.js: a quick pick or a line of text) is excused:
 // never a missed day, never nudged or reminded about.

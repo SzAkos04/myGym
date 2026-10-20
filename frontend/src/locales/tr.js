@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': 'Verilerini güvende ve kişi başına ayrı tutar.',
   'Strength': 'Kuvvet',
   'Equipment': 'Ekipman',
+  'Gym pass': 'Spor salonu üyeliği',
   'Recovery': 'Toparlanma',
   'Any equipment': 'Tüm ekipmanlar',
   'bench': 'sehpa', 'pull-up bar': 'barfiks barı',

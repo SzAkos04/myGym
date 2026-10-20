@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': 'आपका डेटा सुरक्षित और हर व्यक्ति के लिए अलग रखता है।',
   'Strength': 'शक्ति',
   'Equipment': 'उपकरण',
+  'Gym pass': 'जिम पास',
   'Recovery': 'रिकवरी',
   'Any equipment': 'कोई भी उपकरण',
   'bench': 'बेंच', 'pull-up bar': 'पुल-अप बार',

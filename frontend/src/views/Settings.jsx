@@ -43,6 +43,7 @@ import { ServerSyncSection, KeptChangesRows, leaveServer, connectServer, passkey
 import { passwordOn, PasswordRow, openPasswordSignIn, openPasswordRegister } from '../components/PasswordAuth.jsx'
 import { usePasskeys, PasskeysRow, DeviceLinkRow, openDeviceLinkRedeem } from '../components/Passkeys.jsx'
 import { Section, Row, SelectRow, Switch, Segmented, Button, TextField, SearchField } from '../components/ui.jsx'
+import { GymPassPage, passPreview } from '../components/GymPass.jsx'
 import { PAGES, ROOT_GROUPS, pageVisible, searchSettings, pageTrail } from './settings-pages.js'
 import { REPO as FORK_REPO, UPSTREAM_REPO } from '../lib/branding.js'
 import { entryCount } from '../lib/app-history.js'
@@ -414,6 +415,7 @@ export default function Settings({ page = null, find = null, via = null }) {
     equipment: () => (S.equipFilterOn && activeProfile ? activeProfile.name : t('Everything')),
     look: () => themeLabel + ' · ' + accentLabel(S),
     coach: () => (coachLocal?.mode === 'server' ? t('Your server') : coachLocal?.mode === 'byok' ? t('Your API key') : t('Off')),
+    pass: () => passPreview(S),
     data: () => '',
     about: () => 'v' + __APP_VERSION__,
   }
@@ -774,6 +776,7 @@ export default function Settings({ page = null, find = null, via = null }) {
       </Section>
     </>,
 
+    pass: () => <GymPassPage />,
     data: () => <>
       <Section title={t('Back up')}>
         <Row icon="share" iconTint="var(--blue)" title={t('Export backup (JSON)')} subtitle={hasMedia ? t('Without photos and videos') : undefined} accessory="chevron" onClick={doExport} />

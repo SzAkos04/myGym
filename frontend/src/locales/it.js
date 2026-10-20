@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': 'Mantiene i tuoi dati al sicuro e separati per persona.',
   'Strength': 'Forza',
   'Equipment': 'Attrezzi',
+  'Gym pass': 'Abbonamento palestra',
   'Recovery': 'Recupero',
   'Any equipment': 'Qualsiasi attrezzo',
   'bench': 'panca', 'pull-up bar': 'sbarra per trazioni',

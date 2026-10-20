@@ -528,6 +528,7 @@ export default {
   'Keeps your data safe and separate per person.': 'Hält deine Daten sicher und pro Person getrennt.',
   'Strength': 'Kraft',
   'Equipment': 'Geräte',
+  'Gym pass': 'Studio-Abo',
   'Recovery': 'Erholung',
   'Any equipment': 'Alle Geräte',
   'bench': 'Bank', 'pull-up bar': 'Klimmzugstange',

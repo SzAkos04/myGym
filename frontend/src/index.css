@@ -2451,3 +2451,32 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .fin-foot{position:sticky;bottom:calc(-20px - var(--sab));z-index:2;margin:6px 0 calc(-20px - var(--sab));
   padding:10px 0 calc(20px + var(--sab));background:var(--bg-el)}
 :root[data-theme="light"] .fin-foot{background:var(--bg)}
+
+/* ------------------------------------------------------------ gym pass -- */
+/* myGym (components/GymPass.jsx): quiet while a pass is good. Orange when the next one is due, red
+   once it has run out; the text mixes the tint toward the label colour so it reads on both themes. */
+.pass-card{--pt:var(--orange);background:color-mix(in srgb,var(--pt) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pt) 38%,transparent)}
+.pass-card.bad{--pt:var(--red)}
+.pass-card .lbl2{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--pt) 78%,var(--label))}
+.pass-card .ttl{font-size:18px;font-weight:700;letter-spacing:-.015em;margin-top:2px}
+.pass-card .ss{font-size:13px;color:var(--label-2);margin-top:1px}
+.pass-acts{display:flex;gap:8px;margin-top:12px}
+.pass-acts>.btn{flex:1}
+.pass-line{--pt:var(--orange);display:flex;align-items:center;gap:7px;width:100%;margin-top:12px;padding:10px 0 0;
+  border:0;border-top:1px solid var(--sep-op);background:none;font:inherit;font-size:13.5px;font-weight:600;
+  color:color-mix(in srgb,var(--pt) 78%,var(--label));text-align:start;cursor:pointer}
+.pass-line.bad{--pt:var(--red)}
+.pass-line span{flex:1;min-width:0}
+.pass-line .chev{color:var(--label-3);font-size:13px}
+.wday.pass-end .num{box-shadow:inset 0 0 0 1.5px var(--orange);border-radius:50%;width:31px;color:color-mix(in srgb,var(--orange) 78%,var(--label));font-weight:600}
+.wday.today.pass-end .num{box-shadow:0 0 0 2px var(--bg-el,var(--bg)),0 0 0 3.5px var(--orange)}
+.pass-visits{display:flex;align-items:center;justify-content:center;gap:7px;margin:10px 0 2px;font-size:14px;font-weight:600;color:var(--label-2)}
+.pass-visits.warn{color:color-mix(in srgb,var(--orange) 78%,var(--label))}
+.pass-now .pass-dots{display:flex;flex-wrap:wrap;gap:5px;padding:2px 14px 12px 52px}
+.pass-dots i{width:14px;height:14px;border-radius:50%;background:var(--surface-3)}
+.pass-dots i.u{background:var(--acc)}
+.pass-now.warn .pass-dots i.u{background:var(--orange)}
+.pass-now .pass-bar{height:6px;border-radius:9px;background:var(--surface-3);margin:2px 14px 13px 52px;overflow:hidden}
+.pass-bar span{display:block;height:100%;background:var(--acc);border-radius:inherit}
+.pass-now.warn .pass-bar span{background:var(--orange)}
+.pass-now.bad .pass-bar span{background:var(--red)}

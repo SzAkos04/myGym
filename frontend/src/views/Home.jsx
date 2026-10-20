@@ -18,6 +18,8 @@ import { tappable } from '../lib/use-sheet-keyboard.js'
 import { dayNoteOf } from '../lib/day-notes.js'
 import { weeklyWorkingSets, lastWorkoutSummary, todaySummary } from '../lib/home-stats.js'
 import { prsOf } from '../lib/pr-derive.js'
+import { PassCard, PassLine } from '../components/GymPass.jsx'
+import { passStatus } from '../lib/gym-pass.js'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -49,6 +51,9 @@ export default function Home() {
   const wkStart = new Date(today)
   wkStart.setDate(today.getDate() - weekDayOffset(today.getDay(), ws) + weekOffset * 7)
   const doneDays = new Set(S.workouts.map(w => w.d))
+  // The gym pass's last day gets a ring, unless the next pass is already on record (lib/gym-pass.js).
+  const pass = passStatus(S, todayISO())
+  const passEndDay = pass.state !== 'none' && !pass.next ? pass.end : null
   // The last session logged for today, if any — what the row below reports instead of asking
   // you to start the one you already did. Last wins, so a second session names itself. Only once
   // today's plan is covered, though: a freestyle session on a planned day, or the rotation's
@@ -66,7 +71,7 @@ export default function Home() {
     const eff = effectiveRoutineIds(S, iso).length > 0, ovr = S.dayPlan[iso] !== undefined, done = doneDays.has(iso)
     // A day off with a note (#261) reads as excused, not as a plan that went by.
     const dot = done ? ' done' : dayNoteOf(S, iso) ? ' noted' : ovr && eff ? ' ovr' : eff ? ' plan' : ''
-    strip.push(<div key={i} className={'wday' + (iso === todayISO() ? ' today' : '')} {...tappable(() => dayOverrideSheet(iso))}>
+    strip.push(<div key={i} className={'wday' + (iso === todayISO() ? ' today' : '') + (iso === passEndDay ? ' pass-end' : '')} {...tappable(() => dayOverrideSheet(iso))}>
       <div className="lbl">{t(DAYS[d.getDay()])}</div><div className="num">{d.getDate()}</div><div className={'dot' + dot} /></div>)
   }
   const wkEnd = new Date(wkStart); wkEnd.setDate(wkStart.getDate() + 6)
@@ -127,6 +132,8 @@ export default function Home() {
       </div>
     </div>
 
+    <PassCard />
+
     <div className="card">
       {/* A coach week runs by order, not by weekday, so its progress row stands in for the
           seven dots (components/QueueRow.jsx). The today row below stays as it is: the queue's
@@ -172,6 +179,7 @@ export default function Home() {
           <div><b>{fmtNum(doneSum.volume)}</b><span>{S.unit} · {t('Volume')}</span></div>
           <div><b className={doneSum.prs ? 'pr-num' : ''}>{doneSum.prs}</b><span>{t('Records')}</span></div>
         </div>}
+        <PassLine />
       </div>
       {/* The row above starts today's plan in one tap, and so does the Start button in the tab
           bar — which is the whole problem when you want something else. Both jump straight into

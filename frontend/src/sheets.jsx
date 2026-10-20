@@ -23,6 +23,7 @@ import { durationSheet } from './components/DurationWheel.jsx'
 import { SG_NAME_MAX } from './lib/superset-meta.js'
 import { REST_MAX, fmtRest } from './lib/duration.js'
 import Icon from './components/Icon.jsx'
+import { PassVisits } from './components/GymPass.jsx'
 import { Button, Slider, Switch, Segmented, SelectRow, Row, TextField, NumberField, MultiSelectRow } from './components/ui.jsx'
 import { glyphOf, GLYPH_GROUPS, DEFAULT_GLYPH } from './lib/glyphs.js'
 import BodyMap from './components/BodyMap.jsx'
@@ -3447,6 +3448,7 @@ function FinishSummary({ w, prs, e1prs = [], close }) {
         {allSets > workSets && <div className="s">{t('+{0} warm-up', allSets - workSets)}</div>}</div>
       <div className={'fin-stat' + (prs.length ? ' pr' : '')}><div className="v">{prs.length || '–'}</div><div className="l">{t('PRs')}</div></div>
     </div>
+    <PassVisits />
     {(prs.length > 0 || e1prs.length > 0) && <div className="fin-prs">
       {prs.map(id => <div key={id} className="fin-pr"><Icon name="trophy" />
         <span className={'nm ' + exerciseNameClass(EXIDX[id])}>{name(id)}</span><span className="set">{prSet(id)}</span></div>)}

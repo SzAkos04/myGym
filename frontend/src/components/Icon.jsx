@@ -131,6 +131,7 @@ const P = {
   info: <><circle cx="12" cy="12" r="8.2" /><path d="M12 11v5.4" /><circle cx="12" cy="7.9" r=".9" fill="currentColor" stroke="none" /></>,
   // Three position-detection squares plus a scatter of modules — reads as "QR / scan this"
   // at tab-bar size without trying to draw a real (unscannable) code.
+  ticket: <><path d="M3.6 7.4a1.8 1.8 0 0 1 1.8-1.8h13.2a1.8 1.8 0 0 1 1.8 1.8v2.4a2.2 2.2 0 0 0 0 4.4v2.4a1.8 1.8 0 0 1-1.8 1.8H5.4a1.8 1.8 0 0 1-1.8-1.8v-2.4a2.2 2.2 0 0 0 0-4.4Z" /><path d="M14.6 5.6v1.6M14.6 11.2v1.6M14.6 16.8v1.6" /></>,
   qr: <><rect x="3.6" y="3.6" width="6" height="6" rx="1.2" /><rect x="14.4" y="3.6" width="6" height="6" rx="1.2" /><rect x="3.6" y="14.4" width="6" height="6" rx="1.2" /><path d="M14.4 14.4h2.4v2.4M20.4 14.4v.01M14.4 20.4h.01M17.4 17.4h3M17.4 20.4h3" /></>,
   camera: <><path d="M3.6 8.8a2 2 0 0 1 2-2h1.9l1.3-2.1h6.4l1.3 2.1h1.9a2 2 0 0 1 2 2v8.4a2 2 0 0 1-2 2H5.6a2 2 0 0 1-2-2Z" /><circle cx="12" cy="12.8" r="3.3" /></>,
   image: <><rect x="3.6" y="4.8" width="16.8" height="14.4" rx="2.6" /><circle cx="8.6" cy="9.6" r="1.7" /><path d="m4.4 17.4 4.8-4.6 3.3 3 3-2.6 4.1 4" /></>,

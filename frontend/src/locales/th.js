@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': 'เก็บข้อมูลของคุณให้ปลอดภัยและแยกตามแต่ละคน',
   'Strength': 'ความแข็งแรง',
   'Equipment': 'อุปกรณ์',
+  'Gym pass': 'บัตรฟิตเนส',
   'Recovery': 'การฟื้นตัว',
   'Any equipment': 'อุปกรณ์ใดก็ได้',
   'bench': 'ม้านั่ง', 'pull-up bar': 'บาร์โหน',

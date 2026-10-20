@@ -18,7 +18,7 @@ import * as coachJobs from './coach/jobs.js';
 import { coachRoutes } from './coach/routes.js';
 import { startCadence } from './coach/cadence.js';
 import { startWarmup } from './coach/warmup.js';
-import { dayReminderPush, nudgePush, restTimerPush, testPush } from './push-messages.js';
+import { dayReminderPush, nudgePush, passPush, restTimerPush, testPush } from './push-messages.js';
 import { verifyError } from './verify-error.js';
 import {
   hashPassword, verifyPassword, needsRehash, passwordProblem, passwordLength, nameKey, BusyError,
@@ -34,7 +34,7 @@ import { createMediaStore, mediaLimits, mediaConfig, MediaError, HASH_RE } from 
 import { effectiveRoutineId } from './queue.js';
 import { stampPut } from './sync-stamps.js';
 import { atomicWrite as durableWrite } from './durable.js';
-import { excusedOn, nudgeFor, nudgeWindowOpen, toneOf } from './nudge.js';
+import { excusedOn, nudgeFor, nudgeWindowOpen, passEndingTomorrow, toneOf } from './nudge.js';
 
 const PORT = +(process.env.PORT || 3000);
 const DATA = process.env.DATA_DIR || '/data';
@@ -497,6 +497,16 @@ function nudgeTick(user, S, now) {
   saveDb();
   sendPush(user.id, nudgePush(S.lang, toneOf(S.reminder), routine, now.date));
 }
+// The evening before a gym pass ends (myGym): the nudge's window, once per local date
+// (`user.lastPassPush`), whether or not today is a training day.
+function passTick(user, S, now) {
+  if (user.lastPassPush === now.date || !nudgeWindowOpen(S.reminder.time, now.hhmm)) return;
+  if (!passEndingTomorrow(S, now.date)) return;
+  console.log('gym pass push', user.id);
+  user.lastPassPush = now.date;
+  saveDb();
+  sendPush(user.id, passPush(S.lang));
+}
 setInterval(() => {
   for (const user of db.users) {
     if (!db.subs.some(s => s.userId === user.id)) continue;
@@ -509,6 +519,7 @@ setInterval(() => {
       const now = userNow(S.reminder.tz || 'UTC');
       if (!now) continue;
       nudgeTick(user, S, now);
+      passTick(user, S, now);
       const late = minutesLate(S.reminder.time, now);
       if (!(late >= 0 && late <= REMINDER_WINDOW_MIN)) continue;
       if (user.lastReminder === now.date) continue;

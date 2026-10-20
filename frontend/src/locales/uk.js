@@ -344,6 +344,7 @@ export default {
   'Keeps your data safe and separate per person.': 'Зберігає твої дані безпечно й окремо для кожного.',
   'Strength': 'Сила',
   'Equipment': 'Інвентар',
+  'Gym pass': 'Абонемент',
   'Recovery': 'Відновлення',
   'Any equipment': 'Будь-який інвентар',
   'bench': 'лава', 'pull-up bar': 'турнік',

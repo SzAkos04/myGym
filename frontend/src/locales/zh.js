@@ -510,6 +510,7 @@ export default {
   'Keeps your data safe and separate per person.': '让你的数据安全，并按人分开保存。',
   'Strength': '力量',
   'Equipment': '器械',
+  'Gym pass': '健身卡',
   'Recovery': '恢复',
   'Any equipment': '所有器械',
   'bench': '卧推凳', 'pull-up bar': '引体向上杆',

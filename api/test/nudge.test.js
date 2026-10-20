@@ -110,3 +110,19 @@ test('push text: by tone, one line per date, routine name filled in, localized',
   // a name with $-patterns is inserted literally
   assert.match(nudgePush('en', 'friendly', { name: '$& $1' }, '2026-09-04').body + nudgePush('en', 'friendly', { name: '$& $1' }, '2026-09-05').body, /\$& \$1/);
 });
+
+// Gym pass (myGym): the evening-before push is owed for a time pass whose last day is tomorrow.
+test('passEndingTomorrow: the time pass that ends tomorrow, and nothing once the next one is on record', async () => {
+  const { passEndingTomorrow } = await import('../nudge.js');
+  const { passPush } = await import('../push-messages.js');
+  const monthly = { id: 'm', kind: 'time', start: '2026-10-01', days: 30 }; // last day 30 Oct
+  assert.equal(passEndingTomorrow({ gymPasses: [monthly] }, '2026-10-29')?.id, 'm');
+  assert.equal(passEndingTomorrow({ gymPasses: [monthly] }, '2026-10-28'), null);
+  assert.equal(passEndingTomorrow({ gymPasses: [monthly] }, '2026-10-30'), null);
+  assert.equal(passEndingTomorrow({ gymPasses: [monthly, { id: 'n', kind: 'time', start: '2026-10-31', days: 30 }] }, '2026-10-29'), null);
+  assert.equal(passEndingTomorrow({ gymPasses: [{ id: 'v', kind: 'visits', start: '2026-10-01', visits: 10, until: '2026-10-30' }] }, '2026-10-29'), null);
+  assert.equal(passEndingTomorrow({}, '2026-10-29'), null);
+  assert.equal(passEndingTomorrow({ gymPasses: [null, { id: 'x' }] }, '2026-10-29'), null);
+  assert.equal(passPush('hu').title, 'Holnap lejár a bérleted');
+  assert.equal(passPush('pt-BR').title, 'Your gym pass ends tomorrow');
+});

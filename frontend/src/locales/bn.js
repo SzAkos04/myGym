@@ -543,6 +543,7 @@ export default {
   'Keeps your data safe and separate per person.': 'আপনার ডেটা নিরাপদ এবং প্রত্যেকের জন্য আলাদা রাখে।',
   'Strength': 'শক্তি',
   'Equipment': 'সরঞ্জাম',
+  'Gym pass': 'জিম পাস',
   'Recovery': 'রিকভারি',
   'Any equipment': 'যেকোনো সরঞ্জাম',
   'bench': 'বেঞ্চ', 'pull-up bar': 'পুল-আপ বার',
