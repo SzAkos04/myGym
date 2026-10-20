@@ -142,13 +142,21 @@ const FORK_STUBS = [
   // .typing rule once turned the whole page into a flex box (lib/viewport-guard.js).
   [/\/src\/views\/(CoachChat|CoachIntake|CoachSetup|AdminCoach)\.jsx$/, 'export default function Off() { return null }'],
   [/\/src\/coach\.css$/, ''],
+  // myGym Lite: one way to change screens. The new screen's own CSS slide (index.css, #app.vfade) is all
+  // that moves; nothing copies the old screen (ScreenGhost), keeps pictures of left screens
+  // (screen-snapshots) or runs a scripted slide and the swipe back from the edge (EdgeSwipeBack). On an
+  // iPhone 11 each copy took as long to lay out as the slide it was for.
+  [/\/src\/components\/EdgeSwipeBack\.jsx$/, 'export default function EdgeSwipeBack() { return null }'],
+  [/\/src\/components\/ScreenGhost\.jsx$/, 'export default function ScreenGhost() { return null }'],
+  [/\/src\/lib\/screen-snapshots\.js$/, 'export const saveSnapshot = () => {}; export const getSnapshot = () => null; export const saveTabBar = () => {}; export const getTabBar = () => null; export const resetSnapshots = () => {}'],
   [/\/src\/lib\/coach-local\.js$/, 'export {}'],
   [/\/src\/lib\/coach-demo\.js$/, 'export {}'],
   [/\/node_modules\/jsqr\//, 'export default function jsQR() { return null }'],
 ]
 const forkStubs = {
   name: 'mygym-fork-stubs',
-  apply: 'build',
+  // The dev server too, so what runs on localhost is what ships; the tests keep the upstream code.
+  apply: (config, { mode }) => mode !== 'test',
   enforce: 'pre',
   load(id) {
     const path = id.split('?')[0].replace(/\\/g, '/')
