@@ -2497,6 +2497,10 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 :root[data-theme="light"] #tabbar{background:#fff}
 #toast{background:var(--surface-2)}
 .exmedia .gifhint,.exmedia .giftoggle{background:rgba(0,0,0,.6)}
+/* The blur also gave each pinned bar a compositing layer of its own, and on the iPhone that layer is
+   what keeps a position:fixed bar in place while the page scrolls under it with momentum: without it
+   the tab bar rode up the screen with the Exercises list. An explicit layer, without the blur. */
+#tabbar,#tabfade,#timer,.conn-bar,#toast{will-change:transform}
 
 /* myGym Lite: Settings' back buttons are the same round chevron as every other back button in the app
    (History, Measurements, the routine editor…). They read "‹ Settings" the iOS way, which promises a
