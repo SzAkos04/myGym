@@ -632,7 +632,7 @@ export default function Stats() {
   const exOpts = [{ value: 'top', label: t('Top set') }]
   if (perSet) exOpts.push({ value: 'sets', label: t('Per set') })
   if (showE1) exOpts.push({ value: 'e1rm', label: t('Est. 1RM') })
-  if (showEff) exOpts.push({ value: 'effort', label: t('Effort') })
+  if (ANALYSIS && showEff) exOpts.push({ value: 'effort', label: t('Effort') })
   if (showMax) exOpts.push({ value: 'max', label: t('Max reps') })
 
   return <>
