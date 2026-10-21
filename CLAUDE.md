@@ -166,6 +166,15 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
   machine must keep exactly that Tailscale name. HTTPS is `tailscale serve --bg 8080`.
   `data/` (users, passkeys, workouts, `secret`, `vapid.json`) is the only state; back it up before
   touching the box.
+- **Sync gateway (fork-owned, docs/dev/SYNC_SPEED.md).** The api container runs
+  `api/fork/sync-gateway.js` (set in `docker-compose.override.yml`, the fork's files mounted
+  read-only): upstream's `server.js` runs unmodified inside it on 3100, the gateway listens on 3000
+  and takes gzipped pushes and delta pushes (`PUT /api/data/delta`), rebuilding the full document and
+  handing it to upstream's `PUT /api/data`. The app side is `frontend/src/fork/sync-transport.js`,
+  swapped in for `src/lib/api.js` by the `syncTransport` plugin in `vite.config.js` (not under
+  test). No upstream file is edited for any of it. Its tests: `node --test api/fork/*.test.js`
+  (outside upstream's test glob; CI runs them) and `frontend/src/fork/`. To switch it off, remove the
+  `api:` block from the override and redeploy.
 
 ### Tests on the Mac
 

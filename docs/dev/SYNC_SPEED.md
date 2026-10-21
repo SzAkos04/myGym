@@ -1,8 +1,8 @@
 # Sync speed — a fork-owned sync transport (myGym fork)
 
-Plan for replacing how the app's data travels to the server — **gzip-compressed uploads** and
-**delta pushes** (only what changed) — as a layer the fork owns. It describes what to build, not a
-change already made. Owner's go-ahead needed before any code.
+**Status: built 2026-10-21** (results in §7). Plan for replacing how the app's data travels to the server — **gzip-compressed uploads** and
+**delta pushes** (only what changed) — as a layer the fork owns. It was written as the plan and approved
+by the owner before any code; the sections below describe what was built.
 
 **The rule this plan is built around: no upstream file is edited.** Everything new lives in files
 upstream does not have (`api/fork/`, `frontend/src/fork/`) and is switched on from the two files
@@ -167,15 +167,27 @@ it measures clearly faster in WebKit, with the build failing loudly when upstrea
 - `frontend/src/fork/sync-transport.test.js` (fetch mocked): delta after a pull or a landed push; full
   after a reload; full on a forced push; mismatch → full retry; old server (no `sync` in config) →
   plain full; 409 document becomes the base; error shapes unchanged.
-- One store test with `lib/api.js` mocked to the transport: a tick after a sync sends a delta, a
-  conflict merges and lands.
+- End to end instead of a store test with `lib/api.js` mocked (the transport imports that very
+  module): the built app in WebKit against the real gateway and upstream API (§7).
 - The full frontend, api and MCP suites; CI on push. Upstream's own suites keep running against the
   untouched upstream code.
 
-## 7. Measured after
+## 7. Measured after (2026-10-21)
 
-Same harness, 1 and 3 year profiles: bytes per push (full gzipped, delta gzipped) and time per push;
-one sync round on the iPhone 11 Pro Max simulator; and on the live server after deploying.
+The built app in WebKit (iPhone UA), its real store and transport, against the gateway running
+upstream's API, three set ticks and their pushes per profile. Every push went as a gzipped delta and
+landed (200).
+
+| | 1 year | 3 years |
+|---|---|---|
+| Upload per push, before | 349 KB | 1,114 KB |
+| **Upload per push, now** | **2.1 KB** | **5.2 KB** |
+| Push round trip on the Mac's loopback, before → now | 25 → 23–33 ms | ~40 → ~58 ms |
+
+The round trip on loopback grew because the gateway reads the stored document before handing the
+rebuilt one on; over a phone's uplink the 1 MB that no longer travels is worth seconds. What is left
+of the 3-year delta is mostly the order of 540 workout ids. Suites: frontend 5,212, upstream's API
+597, MCP 95, `api/fork` 18, all passing.
 
 ## 8. Order of work
 

@@ -7,3 +7,14 @@ services:
     build:
       args:
         APP_BUILD: ${APP_BUILD:-}
+  # myGym's sync gateway (api/fork/sync-gateway.js, docs/dev/SYNC_SPEED.md): upstream's API runs inside it
+  # on port 3100, unmodified, and the gateway listens on 3000 in front of it, taking gzipped pushes and
+  # pushes of only what changed. The API image copies its files one by one (upstream's Dockerfile), so
+  # the fork's files come in from this checkout, read-only. Delete these lines and redeploy to run
+  # upstream's API exactly as it ships.
+  api:
+    command: ["node", "fork/sync-gateway.js"]
+    environment:
+      - UPSTREAM_PORT=3100
+    volumes:
+      - ./api/fork:/app/fork:ro

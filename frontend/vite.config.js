@@ -165,6 +165,25 @@ const forkStubs = {
   }
 }
 
+// myGym's sync transport (src/fork/sync-transport.js, docs/dev/SYNC_SPEED.md): every import of
+// src/lib/api.js resolves to it, except its own import of the original. It re-exports lib/api.js and
+// replaces api() with one that gzips a push and sends only what changed, where the server's gateway
+// takes them. Upstream's files stay as they are; the tests keep the original module.
+const SRC = resolve(fileURLToPath(new URL('.', import.meta.url)), 'src')
+const API_JS = join(SRC, 'lib', 'api.js').replace(/\\/g, '/')
+const TRANSPORT = join(SRC, 'fork', 'sync-transport.js').replace(/\\/g, '/')
+const syncTransport = {
+  name: 'mygym-sync-transport',
+  apply: (config, { mode }) => mode !== 'test',
+  enforce: 'pre',
+  async resolveId(source, importer, options) {
+    if (!importer || !/(^|\/)api\.js$/.test(source)) return null
+    const hit = await this.resolve(source, importer, { ...options, skipSelf: true })
+    if (!hit || hit.id.split('?')[0].replace(/\\/g, '/') !== API_JS) return null
+    return importer.split('?')[0].replace(/\\/g, '/') === TRANSPORT ? null : TRANSPORT
+  }
+}
+
 // Dev only (the dev and preview servers, never a build): sign a browser in that has no console to set the
 // session cookie on, such as Safari in the iOS Simulator. Open /__dev-session?c=<value>, the value from
 // api/scripts/dev-session.mjs; the cookie is set for this localhost origin and the app opens. Anyone able
@@ -197,7 +216,7 @@ function devSessionRoute(req, res, next) {
 export default defineConfig(({ command, mode }) => ({
   // __APP_LANGS__ narrows the language picker (lib/i18n-core.js); in dev and tests it is null: everything.
   define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_LANGS__: command === 'build' && appLangs ? JSON.stringify(appLangs) : 'null', ...forkDefines(mode) },
-  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs, forkStubs, devSession],
+  plugins: [react(), umami, flavor, swStamp, catalogueMedia, packLangs, forkStubs, syncTransport, devSession],
   base: './',
   server: {
     // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core
