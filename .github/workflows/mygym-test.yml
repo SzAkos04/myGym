@@ -92,6 +92,9 @@ jobs:
       - run: docker build --target default -t opengym-api:default ./api
       - run: docker build --target coach   -t opengym-api:coach   ./api
       - run: docker build -t opengym-api:published ./api
+      # The web image builds the app from frontend/ alone: an import that reaches outside it builds on a
+      # developer's machine and fails here (it did, 2026-10-21: the sync transport's api/fork import).
+      - run: docker build -f web/Dockerfile -t opengym-web:ci .
 
       - name: the untargeted image has no AI runtime either
         run: |
