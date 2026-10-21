@@ -11,7 +11,7 @@
 // import of lib/api.js here in the app build; the tests and upstream's own code keep lib/api.js.
 import * as upstream from '../lib/api.js'
 import { MOBILE } from '../lib/mobile.js'
-import { canon, makeDelta } from '../../../api/fork/sync-delta.js'
+import { canon, makeDelta } from './sync-delta.js'
 
 export * from '../lib/api.js'
 

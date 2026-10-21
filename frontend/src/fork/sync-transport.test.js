@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { gunzipSync } from 'node:zlib'
 import { createHash } from 'node:crypto'
-import { applyDelta, canon } from '../../../api/fork/sync-delta.js'
+import { applyDelta, canon } from './sync-delta.js'
 import { api, _resetSyncTransport } from './sync-transport.js'
 
 const sha = t => createHash('sha256').update(t).digest('hex')

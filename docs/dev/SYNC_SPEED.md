@@ -100,10 +100,12 @@ in as a read-only mount from the server's checkout instead of a Dockerfile edit.
 and redeploying runs upstream's API exactly as it ships. The container health check reaches the
 gateway on 3000 and is passed through.
 
-## 3. The delta (`api/fork/sync-delta.js`, shared by server and app)
+## 3. The delta (`api/fork/sync-delta.js` and `frontend/src/fork/sync-delta.js`)
 
-One pure module; the app imports it from `../../../api/fork/` (tests already import `api/password.js`
-that way, and the web image builds from the repository root).
+One pure module in two identical copies: the gateway's in `api/fork/`, the app's in
+`frontend/src/fork/`, because the web image builds from `frontend/` alone (upstream's
+`web/Dockerfile` copies nothing else of the API but the Coach core). A test
+(`frontend/src/fork/sync-delta.parity.test.js`) fails the moment the two differ.
 
 ```
 makeDelta(base, state) → {

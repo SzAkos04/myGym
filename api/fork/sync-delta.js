@@ -1,6 +1,7 @@
 // myGym fork: a push as the difference from the document the server holds (docs/dev/SYNC_SPEED.md).
-// Shared by the server's sync gateway (api/fork/sync-gateway.js) and the app's sync transport
-// (frontend/src/fork/sync-transport.js), so both sides read and write one format. Pure: no I/O, no
+// One format for the server's sync gateway (api/fork/sync-gateway.js) and the app's sync transport
+// (frontend/src/fork/sync-transport.js). Two identical copies, api/fork/ and frontend/src/fork/: the web
+// image builds from frontend/ alone. frontend/src/fork/sync-delta.parity.test.js keeps them the same. Pure: no I/O, no
 // hashing (the caller hashes canon(): node:crypto on the server, crypto.subtle in the browser).
 //
 // A delta is only a way to carry a document. Applied to the base it was made from, it gives back the
