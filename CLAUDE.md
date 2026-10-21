@@ -148,28 +148,24 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
 
 - **Dev machine: the Mac** (`~/Projects/myGym`). All coding, tests and previews happen here, on
   the **`dev` branch**. Commit and push to `dev` as you go.
-- **Server: the Windows box** (`csodabogar2`, Tailscale `100.102.100.63`). It only runs Docker
-  from `C:\Users\SzAko\Documents\opengym` on the **`custom`** branch. Nobody codes there; it is slow,
-  and the test suite takes half an hour on it. Don't run tests there.
+- **Server: the Arch Linux box** (`csodabogar2`, moved off Windows on 2026-10-21). It only runs
+  Docker from `~/myGym` (user `szakos`) on the **`custom`** branch. Nobody codes there and it is
+  slow; don't run tests there.
 - **Merging `dev` into `custom` happens only when the user says they tried it and it is good.**
   Never on your own. Then: `git switch custom && git merge dev && git push && git switch dev`.
-- **Updating the server** after a merge (from the Mac, needs `sshd` running on Windows):
-  `ssh SzAko@csodabogar2 "cd C:\Users\SzAko\Documents\opengym && git pull --ff-only && scripts\server-update.cmd"`.
-  The script rebuilds with the commit as `APP_BUILD` (passed by `docker-compose.override.yml`),
-  so Settings shows which build is live ("v1.4.1+<commit>"); it also sets the `DOCKER_CONFIG` below.
-  `DOCKER_CONFIG` points at a config that keeps the CLI off the Windows credential store: over SSH
-  it is out of reach and every image pull fails with "A specified logon session does not exist".
-  Leaving `credsStore` out is not enough (the CLI then picks `wincred`, the same store); the file
-  has one placeholder `auths` entry, which makes it use the plain file store. No registry login
-  is stored, so nothing is lost.
+- **Updating the server** after a merge (from the Mac):
+  `ssh szakos@csodabogar2 '~/myGym/scripts/server-update.sh'`. The script pulls `custom`
+  (fast-forward only) and rebuilds with the commit as `APP_BUILD` (passed by
+  `docker-compose.override.yml`), so Settings shows which build is live ("v1.4.1+<commit>").
   Frontend-only changes need only the `web` service rebuilt; a change in `api/` needs `api` too.
-- **SSH to the server:** user `SzAko` is a Microsoft account, so a password login wants the
-  Microsoft account password (not the Windows PIN). Key login: the Mac's public key goes in
-  `C:\ProgramData\ssh\administrators_authorized_keys` (an admin account ignores `~/.ssh`). The
-  host keys were generated 2026-10-19, so an older `known_hosts` entry on the Mac is stale
-  (`ssh-keygen -R csodabogar2`). Docker Desktop must be running in the user's session for
-  `docker` to answer over SSH. Set `git config core.filemode false` in the server checkout: Windows reports the
-  scripts' exec bit as a change otherwise.
+  The web container's health check first runs 5 minutes after start ("health: starting" until then).
+- **SSH to the server is Tailscale SSH** (`tailscale up --ssh` on the box): no sshd and no keys.
+  The tailnet policy's `ssh` rule must be `"action": "accept"`; with `"check"` every session waits
+  for a browser approval and a command run from here just hangs. The box's address is its MagicDNS
+  name `csodabogar2.tailbd3336.ts.net`, which is also `RP_ID`: the passkeys are bound to it, so the
+  machine must keep exactly that Tailscale name. HTTPS is `tailscale serve --bg 8080`.
+  `data/` (users, passkeys, workouts, `secret`, `vapid.json`) is the only state; back it up before
+  touching the box.
 
 ### Tests on the Mac
 
