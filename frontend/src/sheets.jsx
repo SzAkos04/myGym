@@ -3382,25 +3382,23 @@ const TREND = { 1: ['arrowUp', 'var(--green)'], 0: ['minus', 'var(--text-2)'], [
 // next session opens at. The trend sits beside the name, so the row says up or down at a glance.
 function LastAndNext({ st, w, rows = finishCompare(st, w) }) {
   if (!rows.length) return null
-  const nextWord = { up: t('step up'), hold: t('same again'), down: t('lighter'), deload: t('deload') }
+  // myGym: what the next session opens at, the line under each lift saying what changes; a step up
+  // in the accent. Last time stays one tap away in the exercise's history.
+  const nextWord = { up: t('step up'), hold: t('same weight'), down: t('lighter'), deload: t('deload') }
   return <div className="fin-sec">
-    <h4 className="sec">{t('Last time and next time')}</h4>
-    <div className="list fin-ex">{rows.map(row => {
+    <h4 className="sec">{t('Next time')}</h4>
+    <div className="list fin-next">{rows.map(row => {
       const ex = EXIDX[row.id]
-      const tr = row.trend == null ? null : TREND[row.trend]
+      const up = row.next?.kind === 'up'
       return <div key={row.id} className="item">
-        <div className="fin-ex-hd">
-          <span className={'tt ' + exerciseNameClass(ex)}>{ex ? exerciseNameFor(ex) : row.id}</span>
-          {tr ? <span style={{ color: tr[1], display: 'inline-flex' }} aria-label={row.trend > 0 ? t('Up on last time') : row.trend < 0 ? t('Down on last time') : t('Same as last time')}><Icon name={tr[0]} /></span>
-            : <span className="tag nocap">{t('First time')}</span>}
+        <div className="grow">
+          <div className={'tt ' + exerciseNameClass(ex)}>{ex ? exerciseNameFor(ex) : row.id}</div>
+          <div className="ss">{row.last ? t('Today') + ' ' + setsLine(row.today, st.unit) : t('First time') + ' · ' + setsLine(row.today, st.unit)}</div>
         </div>
-        <div className="fin-cols">
-          <div><div className="k">{t('Last time')}</div><div className="dim">{row.last ? setsLine(row.last, st.unit) : '–'}</div></div>
-          <div><div className="k">{t('Today')}</div><div>{setsLine(row.today, st.unit)}</div></div>
-          <div><div className="k">{t('Next time')}</div>{row.next
-            ? <div className="accent">{row.next.w != null ? fmtNum(row.next.w) + ' ' + st.unit : ''}{row.next.w != null && row.next.r != null ? ' × ' : ''}{row.next.r != null ? row.next.r : ''}<div className="small dim">{nextWord[row.next.kind]}</div></div>
-            : <div className="dim">–</div>}</div>
-        </div>
+        {row.next ? <div className={'fin-nx' + (up ? ' up' : '')}>
+          <div className="v">{row.next.w != null ? fmtNum(row.next.w) + ' ' + st.unit : ''}{row.next.w != null && row.next.r != null ? ' × ' : ''}{row.next.r != null ? row.next.r : ''}</div>
+          <div className="k">{nextWord[row.next.kind]}</div>
+        </div> : <div className="fin-nx"><div className="k">–</div></div>}
       </div>
     })}</div>
   </div>
@@ -3439,15 +3437,15 @@ function FinishSummary({ w, prs, e1prs = [], close }) {
   return <div className="fin">
     <div className="fin-hero">
       <div className="fin-badge"><Icon name="trophy" /></div>
-      <h3>{t('Workout complete!')}</h3>
-      <div className="fin-sub">{[w.name, fmtDate(w.d)].filter(Boolean).join(' · ')}</div>
+      <h3>{t('Workout complete')}</h3>
+      <div className="fin-sub">{[w.name, fmtDate(w.d, true)].filter(Boolean).join(' · ')}</div>
     </div>
     <div className="fin-stats">
       <div className="fin-stat"><div className="v">{fmtDur(w.end - w.start)}</div><div className="l">{t('Duration')}</div></div>
       <div className="fin-stat"><div className="v">{fmtVol(w.vol, st.unit)}</div><div className="l">{t('Volume')}</div></div>
       <div className="fin-stat" title={setsWorkCount(allSets, workSets)}><div className="v">{workSets}</div><div className="l">{t('Sets')}</div>
         {allSets > workSets && <div className="s">{t('+{0} warm-up', allSets - workSets)}</div>}</div>
-      <div className={'fin-stat' + (prs.length ? ' pr' : '')}><div className="v">{prs.length || '–'}</div><div className="l">{t('PRs')}</div></div>
+      <div className={'fin-stat' + (prs.length ? ' rec' : '')}><div className="v">{prs.length || '–'}</div><div className="l">{t('Records')}</div></div>
     </div>
     <PassVisits />
     {(prs.length > 0 || e1prs.length > 0) && <div className="fin-prs">
@@ -3458,14 +3456,14 @@ function FinishSummary({ w, prs, e1prs = [], close }) {
     </div>}
     <LastAndNext st={st} w={w} rows={rows} />
     <CardioDone st={st} w={w} />
-    <div className="fin-sec fin-map">
+    {ANALYSIS && <div className="fin-sec fin-map">
       <h4 className="sec">{t('What you just trained')}</h4>
       <BodyMap load={loadOfWorkouts([w])} body={st.body} />
-    </div>
+    </div>}
     {/* The moment for a progress photo or the clip of a set: the workout is already saved, so
         what is added here goes straight onto its record. */}
     <div className="fin-sec"><WorkoutMediaSection w={w} hint /></div>
-    <div className="fin-foot"><Button variant="primary" onClick={() => closeThenNav(close, '/home')}>{t('Nice!')}</Button></div>
+    <div className="fin-foot"><Button variant="primary" onClick={() => closeThenNav(close, '/home')}>{t('Done')}</Button></div>
   </div>
 }
 export function finishWorkout() {

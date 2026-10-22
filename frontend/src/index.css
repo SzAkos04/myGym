@@ -2501,6 +2501,11 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
    what keeps a position:fixed bar in place while the page scrolls under it with momentum: without it
    the tab bar rode up the screen with the Exercises list. An explicit layer, without the blur. */
 #tabbar,#tabfade,#timer,.conn-bar,#toast{will-change:transform}
+/* The workout's pinned header (list layouts, position:sticky) needs the same: without a layer of its
+   own, iOS lost it whenever the page moved under it from outside a scroll, as the keyboard does when
+   a weight is typed, or after a routine update re-laid the list out, and it came back only while a
+   sheet held the page still. */
+.whdr.stick{will-change:transform}
 
 /* myGym Lite: Settings' back buttons are the same round chevron as every other back button in the app
    (History, Measurements, the routine editor…). They read "‹ Settings" the iOS way, which promises a
@@ -2586,3 +2591,24 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 .last-workout .ttl{font-size:18px;font-weight:700;letter-spacing:-.015em;margin-top:2px}
 /* Exercises: the best weight on a row now carries its unit ("15 kg"), not capitalised with the row. */
 .item>.tag.acc{text-transform:none}
+
+/* myGym: the workout's end screen, design A (sheets.jsx FinishSummary). Calm: the session in one strip,
+   the records, then what each lift does next time. The records tile was painted by the global `.pr`
+   badge rule (yellow, spilling past the strip); it is `.rec` now. The Done button sat a home
+   indicator's height too high: it now keeps just the safe area under it. */
+.fin-badge{width:52px;height:52px;font-size:26px;margin-bottom:8px}
+.fin-hero h3{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.fin-hero .fin-sub{font-size:15px}
+.fin-stat.rec .v{color:var(--acc);font-weight:800}
+.fin-prs{background:var(--surface)}
+.fin-pr .icn{color:var(--yellow-ink)}
+.fin-pr .set{color:var(--label);font-size:15px}
+.fin-next .item{gap:12px;padding-top:12px;padding-bottom:12px}
+.fin-next .tt{font-weight:600}
+.fin-nx{text-align:end;flex:none}
+.fin-nx .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fin-nx .k{font-size:12px;color:var(--label-2)}
+.fin-nx.up .v{color:var(--acc);font-weight:700}
+.fin-nx.up .k{color:var(--acc)}
+.fin-foot{padding-bottom:calc(10px + var(--sab))}
+.fin-foot .btn{min-height:54px;font-size:17px;font-weight:700}

@@ -1550,6 +1550,10 @@ function ActiveWorkout() {
     // The sheet opens at the plan's sets and reps rather than today's prescription (see
     // plannedConfigOf), so saving it unchanged rebuilds the rows the entry already has.
     const opened = plannedConfigOf(entry)
+    // The warm-ups as the session has them: one added from the ⋯ menu is not in the routine's count,
+    // and a save at that count rebuilt the rows without it (the warm-up nobody had ticked yet was gone).
+    const warmNow = entry.sets.filter(isWarmupRow).length
+    if (warmNow > (Number(opened.warmupSets) || 0)) opened.warmupSets = warmNow
     exConfigSheet(exOr(entryId), opened, cfg => {
       // Store updates clone the state tree. If this exact object is no longer at the captured
       // index, the list changed while the sheet was open; an id check alone cannot distinguish
