@@ -163,7 +163,21 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
   The tailnet policy's `ssh` rule must be `"action": "accept"`; with `"check"` every session waits
   for a browser approval and a command run from here just hangs. The box's address is its MagicDNS
   name `csodabogar2.tailbd3336.ts.net`, which is also `RP_ID`: the passkeys are bound to it, so the
-  machine must keep exactly that Tailscale name. HTTPS is `tailscale serve --bg 8080`.
+  machine must keep exactly that Tailscale name.
+  **Ports (set 2026-10-30, after Uptime Kuma took the plain address).** One Tailscale name, one HTTPS
+  port per app, each proxied to a local port on 127.0.0.1 (set with `sudo tailscale serve --bg --https=<port>
+  http://127.0.0.1:<local>`; changing it needs the sudo password, or `sudo tailscale set --operator=$USER` once):
+
+  | Address (`https://csodabogar2.tailbd3336.ts.net`) | App | Local port |
+  |---|---|---|
+  | (no port) | Uptime Kuma | 8080 |
+  | `:8081` | **myGym** | 8081 (`WEB_PORT` in `~/myGym/.env`) |
+  | `:8443` | mySleep | 8083 (`WEB_PORT` in `~/mySleep/.env`) |
+  | `:10000` | Vaultwarden | 8082 |
+
+  myGym's `ORIGIN` is `https://csodabogar2.tailbd3336.ts.net:8081` (`~/myGym/.env`, not in git): the API only
+  accepts sign-ins and saves from that exact address; `RP_ID` stays the bare hostname, so passkeys are unaffected.
+  The home-screen app must be added from the :8081 address. Check the table before giving any new app a port.
   `data/` (users, passkeys, workouts, `secret`, `vapid.json`) is the only state; back it up before
   touching the box.
 - **Sync gateway (fork-owned, docs/dev/SYNC_SPEED.md).** The api container runs
