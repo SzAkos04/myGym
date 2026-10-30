@@ -190,13 +190,6 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
   (outside upstream's test glob; CI runs them) and `frontend/src/fork/`. To switch it off, remove the
   `api:` block from the override and redeploy.
 
-- **Dozzle fork (log viewer, `github.com/SzAkos04/dozzle`, branch `custom`, built on the box in `~/dozzle-src`).**
-  Dozzle's own Update button pulls upstream's image and once replaced myGym's fork build with it, so
-  containers labelled `dev.dozzle.update.script: mygym` (set in `docker-compose.override.yml`) are updated
-  by running `scripts/server-update.sh` through `~/update-runner` (systemd user service on 172.17.0.1:8085,
-  allowlist and token in `~/.config/update-runner/`). Output lands in Dozzle's log. Update the fork itself
-  over ssh: `~/dozzle-src/runner/server-update.sh`. Never use Dozzle's update on a container without that label.
-
 ### Tests on the Mac
 
 `cd frontend && npm run test:changed -- origin/custom` runs only the tests the branch can affect

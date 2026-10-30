@@ -7,10 +7,6 @@ services:
     build:
       args:
         APP_BUILD: ${APP_BUILD:-}
-    # The Update button in Dozzle (the fork, github.com/SzAkos04/dozzle) runs scripts/server-update.sh
-    # through the host's update runner instead of pulling upstream's image over the fork's build.
-    labels:
-      dev.dozzle.update.script: mygym
   # myGym's sync gateway (api/fork/sync-gateway.js, docs/dev/SYNC_SPEED.md): upstream's API runs inside it
   # on port 3100, unmodified, and the gateway listens on 3000 in front of it, taking gzipped pushes and
   # pushes of only what changed. The API image copies its files one by one (upstream's Dockerfile), so
@@ -20,7 +16,5 @@ services:
     command: ["node", "fork/sync-gateway.js"]
     environment:
       - UPSTREAM_PORT=3100
-    labels:
-      dev.dozzle.update.script: mygym
     volumes:
       - ./api/fork:/app/fork:ro
