@@ -1,5 +1,5 @@
 {
-  "_about": "What the native iOS app (~/Projects/myGym-ios) writes into the state document, and what it expects the web to read back from it. The same file is a fixture of the app's own tests (GymKit/Tests/GymKitTests/Fixtures/native-contract.json, copied by its scripts/sync-contract.sh). A change here is a change of the app's contract: update the app in the same go.",
+  "_about": "What the native iOS app (~/Projects/myGym-ios) writes into the state document, and what it expects the web to read back from it. The same file is a fixture of the app's own tests (GymKit/Tests/GymKitTests/Fixtures/native-contract.json, copied there by its scripts/gen-goldens.mjs). A change here is a change of the app's contract: update the app in the same go.",
   "active": {
     "id": "w-native-1",
     "d": "2026-11-20",
