@@ -4,8 +4,8 @@
 //
 //   COACH    the AI coach: its screens, the Plan button, its Settings page
 //   CHECKIN  the gym check-in card and screen, with the QR / barcode scanning only it uses
-//   ANDROID  the native phone app: "Get the Android app" and pairing a phone app with this server
-//            (the phone build's own parts, frontend/android and ios, are not in this web build at all)
+//   ANDROID  the Android phone app: "Get the Android app" (the phone build's own parts, frontend/android
+//            and ios, are not in this web build at all). Pairing a phone stays: the native iOS app uses it
 //   GUEST    "Continue without account" on the sign-in screen
 //   ANALYSIS the training analysis the owner has no use for (he trains every set to failure and
 //            judges his own recovery): Stats' Muscle balance / Fatigue / Strength card, the Effort card

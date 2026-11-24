@@ -180,6 +180,10 @@ This checkout is the myGym fork (`github.com/SzAkos04/myGym`, default branch for
   The home-screen app must be added from the :8081 address. Check the table before giving any new app a port.
   `data/` (users, passkeys, workouts, `secret`, `vapid.json`) is the only state; back it up before
   touching the box.
+- **Native iOS app (`~/Projects/myGym-ios`, its own repo).** It pairs through Settings → "Pair the mobile
+  app" (kept out of the `android` switch for it) and writes the same state document.
+  `frontend/src/fork/native-contract.json` is what it writes and expects read back;
+  `native-contract.test.js` fails when an upstream merge changes that. Changing the JSON changes the app's contract.
 - **Sync gateway (fork-owned, docs/dev/SYNC_SPEED.md).** The api container runs
   `api/fork/sync-gateway.js` (set in `docker-compose.override.yml`, the fork's files mounted
   read-only): upstream's `server.js` runs unmodified inside it on 3100, the gateway listens on 3000

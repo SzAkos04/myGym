@@ -872,8 +872,9 @@ export default function Settings({ page = null, find = null, via = null }) {
           {user.admin && <Row icon="crown" iconTint="var(--indigo)" title={t('Admin dashboard')} accessory="chevron" onClick={() => nav('/admin')} />}
           <PasskeysRow state={passkeys.st} changed={credsChanged} />
           <DeviceLinkRow state={passkeys.st} />
-          {ANDROID && <Row icon="qr" iconTint="var(--blue)" title={t('Pair the mobile app')} subtitle={t('Connect the myGym app on your phone to this account.')} accessory="chevron"
-            onClick={() => useUI.getState().openSheet(close => <PairSheet close={close} />)} />}
+          {/* Not behind ANDROID: the native iOS app (~/Projects/myGym-ios) pairs through it too. */}
+          <Row icon="qr" iconTint="var(--blue)" title={t('Pair the mobile app')} subtitle={t('Connect the myGym app on your phone to this account.')} accessory="chevron"
+            onClick={() => useUI.getState().openSheet(close => <PairSheet close={close} />)} />
           {pwOn && <PasswordRow version={credsV} />}
           <Row icon="signOut" iconTint="var(--red)" title={t('Sign out')} danger onClick={signOutHere} />
           <Row icon="shield" iconTint="var(--red)" title={t('Sign out everywhere')} subtitle={t('Ends this profile’s sessions on all your devices.')} danger onClick={signOutEverywhere} />
